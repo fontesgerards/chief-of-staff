@@ -8,9 +8,11 @@ run: once (or to re-seed)
 
 # onboarding — the installer (observe, don't make me teach you)
 
-> One conversation that stands up a working `instance/` from `engine/templates/`. For the future product, steps 1–7 **are** the activation funnel — each new person just talks to it. Scoped thin: wire only **email / calendar / recordings** (Slack/SendBlue deferred).
+> One conversation that stands up a working `instance/` from the engine's `templates/`. For the future product, steps 1–8 **are** the activation funnel — each new person just talks to it. Scoped thin: wire only **email / calendar / recordings** (Slack/SendBlue deferred).
 >
-> **Prerequisite:** run the U0 capability spike first (`engine/docs/U0-capability-spike.md`). It tells you whether connectors are live (step 5) and whether the extractor is structurally isolated.
+> **Where the instance goes:** `instance/` is created in the **current working directory** — the folder the principal launched the runtime from. The engine (templates, methods, this skill) may be a globally-installed plugin elsewhere; resolve engine files from the plugin package and `instance/` from the working directory (see engine `AGENTS.md` → "Two roots"). If an `instance/` already exists here, confirm before re-seeding.
+>
+> **Prerequisite:** run the U0 capability spike first (engine `docs/U0-capability-spike.md`). It tells you whether connectors are live (step 5) and whether the extractor is structurally isolated.
 
 ## The seven steps
 
@@ -21,9 +23,10 @@ run: once (or to re-seed)
 5. **Connect tools.** Wire **email / calendar / recordings** only. **Credentials are delegated to the runtime's connector auth — never written to `config.md` or any file** (config references connectors by name). Defer Slack/SendBlue without blocking.
 6. **Seed the five-type memory** from `engine/templates/`: `core/`, `semantic/`, `episodic/` (recent), `procedural/` (empty or template), `sources/` (with retention), plus `state/`, `queue/`, `log/`, optional `index/`. **All seeded facts carry `origin: imported`** — they won't auto-trust into `core`/`procedural` (tier gate). A **dense, correct seed** both bootstraps usefulness and hardens the brain against later poisoning.
 7. **Write `config.md` & schedule.** Autonomy default = propose-only; fill `connectors:` (names), `schedules:` (cadence per skill), `queue:` lifecycle, `write_back:` tuning. Then initialize the `instance/` backup repo (`.backup-instructions.md`).
+8. **Write the working-folder entry files.** So behavior auto-loads every session (especially when the engine is a globally-installed plugin), write a `CLAUDE.md` and `AGENTS.md` into the working directory (next to `instance/`). Keep them thin: identity one-liner + the **safety floor inlined** (never send outward without approval; never edit `core/` outside a Tier-2 proposal) + "the full behavior contract lives in the chief-of-staff engine's `INSTRUCTIONS.md` — read it first." Inlining the safety floor means the folder is safe even if the plugin path can't be resolved. Use `engine/templates/entry-CLAUDE.md` as the template.
 
 ## Output
-A populated, scheduled, working `instance/`: a clean `engine/` clone + this run = a functioning system.
+A populated, scheduled, working `instance/` in the current folder, plus `CLAUDE.md`/`AGENTS.md` entry files: opening this folder in the runtime + this run = a functioning system.
 
 ## Test scenarios (verification)
 - **Cold start:** running against a sample mailbox/calendar produces a populated `instance/` (core seeded, some `semantic/` entities, `config.md` written, schedules set).

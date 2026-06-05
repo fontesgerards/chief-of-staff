@@ -6,6 +6,19 @@ It does not act on the world by default. It **proposes**; you approve.
 
 > Build artifact of [[AI Chief of Staff — Build Plan]]. Design: [[AI Chief of Staff]] · validation: [[AI Chief of Staff — Architecture Evaluation]] · loop spec: [[AI Chief of Staff — write-back method]].
 
+## Install
+
+**As a plugin (easiest)** — Claude Code:
+```text
+/plugin marketplace add REPLACE-ME/chief-of-staff
+/plugin install chief-of-staff@chief-of-staff
+```
+Then, in the folder where you want your brain to live: `/onboarding`. Codex uses the same `engine/` package — see `PUBLISH.md`. Publishing steps + the naming/collision note: `PUBLISH.md`.
+
+**Or clone (dev / no plugin):** `git clone …`, `./setup.sh`, open the folder, `/onboarding`. See `INSTALL.md`.
+
+The **engine** is the shared plugin; your **instance** (private brain) is created by `/onboarding` in your own folder — it never lives in the plugin.
+
 ## The two halves
 
 ```

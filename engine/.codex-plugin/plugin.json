@@ -1,0 +1,38 @@
+{
+  "name": "chief-of-staff",
+  "version": "0.1.0",
+  "description": "A personal AI Chief of Staff — local-first, plain-text memory that prepares you for what's ahead, closes loops, coaches you, and gets sharper over time. Propose-never-act by default.",
+  "author": {
+    "name": "Fred Fontes"
+  },
+  "homepage": "https://github.com/REPLACE-ME/chief-of-staff",
+  "repository": "https://github.com/REPLACE-ME/chief-of-staff",
+  "license": "MIT",
+  "keywords": [
+    "chief-of-staff",
+    "personal-assistant",
+    "local-first",
+    "knowledge-management",
+    "memory",
+    "coaching"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AI Chief of Staff",
+    "shortDescription": "Local-first personal Chief of Staff with plain-text memory that gets sharper over time.",
+    "longDescription": "Set up a personal Chief of Staff that runs on your own machine. It interviews you, observes how you work, and builds a private plain-text memory it improves every week. Skills prepare you for meetings, close loops, coach you, and research your market. It proposes — you approve — and your brain never leaves your machine. Run $onboarding first to create your instance in the current folder.",
+    "developerName": "Fred Fontes",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/REPLACE-ME/chief-of-staff",
+    "defaultPrompt": [
+      "$onboarding",
+      "$meeting-prep for tomorrow",
+      "$loop-closing"
+    ]
+  }
+}
