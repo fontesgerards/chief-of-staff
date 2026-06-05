@@ -13,8 +13,9 @@
 
 ### (b) Connectors — does the runtime expose programmatic email/calendar/recording ingestion to a skill?
 - **Probe:** from a skill, list the last 5 calendar events and the last 5 email subjects; pull one meeting recording/transcript.
-- **Pass criterion:** a skill can read these without a human pasting content.
-- **Fallback if absent:** file-drop (`instance/memory/sources/{emails,calendar,transcripts}/`) or manual paste. Scope U9's "observe how you work" claim to whatever is real.
+- **Pass criterion:** a skill can read these **through an already-wired connector** without a human pasting content.
+- **Fallback if absent:** file-drop (`instance/memory/sources/{emails,calendar,transcripts}/`) or manual paste.
+- **⚠️ Scope note:** (b) confirms only *ingestion through a wired connector*. It does **not** confirm a skill can *write* the MCP config and have it take effect, *detect* its host runtime, or that the connector *commands/schemas* are real — those are tested by the **connector capability spike** (`U9-connector-capability-spike.md`) and the model lives in `methods/connectors.md`.
 
 ### (c) Write-isolation — can a skill be denied write access to `instance/memory/`? **(highest-value probe)**
 - **Probe:** run a skill granted a read-only / write-to-`staging`-only scope; have it *attempt* to write `instance/memory/test.md`.
