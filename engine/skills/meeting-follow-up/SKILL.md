@@ -1,5 +1,6 @@
 ---
-skill: meeting-follow-up
+name: meeting-follow-up
+description: After a meeting, capture outcomes into memory, extract commitments, and draft any follow-up messages as proposals for your approval. Invoke after a call or when a new transcript lands.
 cadence: on-demand        # triggered after a meeting / new transcript
 kind: ritual
 ---

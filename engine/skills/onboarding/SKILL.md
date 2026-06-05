@@ -1,6 +1,8 @@
 ---
-skill: onboarding
-kind: installer            # the marquee skill — seeds a fresh instance/ from templates
+name: onboarding
+description: Set up your AI Chief of Staff — interviews you, observes your email/calendar to draft a profile, captures your writing voice, and seeds your private memory. Run this first. Re-run to re-seed.
+disable-model-invocation: true
+kind: installer
 run: once (or to re-seed)
 ---
 

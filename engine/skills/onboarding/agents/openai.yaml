@@ -1,0 +1,7 @@
+# Codex-specific metadata for the onboarding skill (ignored by Claude Code).
+# Base behavior lives in ../SKILL.md; this only adds Codex display + policy.
+interface:
+  display_name: "Onboarding"
+policy:
+  # Require explicit invocation ($onboarding) — never auto-trigger an install with side effects.
+  allow_implicit_invocation: false

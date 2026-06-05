@@ -1,5 +1,6 @@
 ---
-skill: loop-closing
+name: loop-closing
+description: Surface what's unassigned, stalled, or ownerless across your open loops and commitments, and propose next steps. Runs weekly.
 cadence: weekly           # config.md schedules.loop-closing (mon)
 kind: ritual
 ---

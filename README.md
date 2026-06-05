@@ -10,13 +10,16 @@ It does not act on the world by default. It **proposes**; you approve.
 
 ```
 chief-of-staff/
+├─ CLAUDE.md / AGENTS.md  ← always-loaded entry (Claude / Codex) → engine/INSTRUCTIONS.md
+├─ setup.sh / INSTALL.md  ← one command to make skills invocable (/onboarding, $onboarding)
 ├─ engine/      ← git, shareable, identical for everyone (THE PRODUCT — no personal data)
 │  ├─ INSTRUCTIONS.md   global behavior + autonomy + memory-access conventions
-│  ├─ skills/           daily / weekly / monthly rituals + consolidation + extractor
+│  ├─ skills/<name>/SKILL.md   invocable skills — onboarding, meeting-prep, consolidate-memory, …
 │  ├─ methods/          write-back, problem-solving, minto, coaching, PEI
 │  ├─ templates/        entity schemas, memory-file + capture + proposal templates
-│  ├─ onboarding/       the conversational installer (itself a skill)
-│  └─ docs/             capability spike + build notes
+│  └─ docs/             capability spike + write-isolation config + build notes
+├─ .claude/skills → engine/skills   (symlink — Claude discovers /<name>)
+├─ .agents/skills → engine/skills   (symlink — Codex discovers $<name>)
 └─ instance/   ← local + private, GITIGNORED here; its own separate backup repo (one person's brain)
    ├─ config.md         identity, goals, autonomy level, connectors, schedules
    ├─ memory/           core · semantic · episodic · procedural · sources · archive
@@ -30,7 +33,7 @@ chief-of-staff/
 
 ## Status
 
-v1 scaffold complete. **U0 capability spike resolved (2026-06-04):** scheduling ✓, connectors ✓, write-isolation ✓ (structural — enforced per-run via Claude Code `permissions.deny`+sandbox or Codex permissions profile; recipes in `engine/docs/write-isolation-config.md`). KTD-5 stays "structural." Next: seed a real `instance/` via `engine/onboarding/onboarding.md`, and add a private remote to the instance backup repo.
+v1 scaffold complete; skills are invocable as commands (run `./setup.sh`, then `/onboarding` in Claude or `$onboarding` in Codex — see `INSTALL.md`). **U0 capability spike resolved (2026-06-04):** scheduling ✓, connectors ✓, write-isolation ✓ (structural — enforced per-run via Claude Code `permissions.deny`+sandbox or Codex permissions profile; recipes in `engine/docs/write-isolation-config.md`). KTD-5 stays "structural." Next: seed a real `instance/` via `engine/onboarding/onboarding.md`, and add a private remote to the instance backup repo.
 
 ## Core principles
 

@@ -1,5 +1,7 @@
 ---
-skill: extract-from-sources
+name: extract-from-sources
+description: Internal read-only extractor — stages facts from email/docs/transcripts without writing memory. Used by other skills; run in a restricted profile. Not typically invoked directly.
+user-invocable: false
 kind: read-only            # CANNOT write memory — only staging
 mutates: false
 writes_to: staging-only    # instance/log/runs/<run>.md + instance/memory/sources/ summaries

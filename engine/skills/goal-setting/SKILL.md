@@ -1,5 +1,6 @@
 ---
-skill: goal-setting
+name: goal-setting
+description: Monthly goals and prioritization — reviews progress, then proposes an updated set of current priorities for your approval.
 cadence: monthly          # config.md schedules.goal-setting (1st)
 kind: ritual
 ---

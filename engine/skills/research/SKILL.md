@@ -1,5 +1,6 @@
 ---
-skill: research
+name: research
+description: Weekly competitor / technology / market research digest — gathers signals on your watch list, updates competitor entities with sourced facts, and leads with the so-what.
 cadence: weekly           # config.md schedules.research (wed)
 kind: ritual
 ---

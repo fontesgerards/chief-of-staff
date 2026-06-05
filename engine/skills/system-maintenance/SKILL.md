@@ -1,5 +1,6 @@
 ---
-skill: system-maintenance
+name: system-maintenance
+description: Review what worked and what didn't this week and propose improvements to the engine itself (skills, methods, templates) — as proposals, never auto-edits. Runs weekly.
 cadence: weekly           # config.md schedules.system-maintenance (fri)
 kind: ritual
 mutates: false            # PROPOSES engine changes — never auto-edits engine/
