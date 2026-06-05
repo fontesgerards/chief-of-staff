@@ -1,5 +1,5 @@
 ---
-name: coaching
+name: cos-coaching
 description: Strengths-based weekly coaching grounded in your real meetings — one or two specific, role-relevant moves and an experiment for the week ahead.
 cadence: weekly           # config.md schedules.coaching (fri)
 kind: ritual

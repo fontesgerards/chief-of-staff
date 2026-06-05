@@ -21,7 +21,7 @@ A CEO's outbound risk is *editorial* — wording, recipient, tone. The proposal 
 Memory writes are **inward** and are made safe a different way — not by approval, but by **append-only capture + git-reversible consolidation + confidence tiers**. Gating every memory write on approval would defeat "observe, don't teach."
 
 - **Hot path (every run, no approval):** end every skill with the capture footer (`engine/templates/capture-footer.md`). It is **strictly append-only** — it never edits or deletes existing memory, only adds timestamped, sourced, `origin`-tagged entries to `instance/state/` and `instance/log/runs/<run>.md`. Because nothing is destroyed, a bad capture cannot silently corrupt the brain.
-- **Cold path (weekly, reconciles):** only `engine/skills/consolidate-memory.md` may edit or delete memory, and only under the safety tiers in `engine/methods/write-back.md`. Every destructive edit is a git commit you can review as a diff.
+- **Cold path (weekly, reconciles):** only the `cos-consolidate-memory` skill (`engine/skills/cos-consolidate-memory/SKILL.md`) may edit or delete memory, and only under the safety tiers in `engine/methods/write-back.md`. Every destructive edit is a git commit you can review as a diff.
 
 ## 3. Session continuity: read-first / write-last
 

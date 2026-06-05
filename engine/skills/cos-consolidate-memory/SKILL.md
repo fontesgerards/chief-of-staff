@@ -1,5 +1,5 @@
 ---
-name: consolidate-memory
+name: cos-consolidate-memory
 description: Weekly memory consolidation (the cold path) — promote clustered learnings, supersede stale facts, decay and prune, and produce a reviewable diff. Usually scheduled; the only skill that edits memory.
 cadence: weekly            # config.md schedules.consolidate-memory
 kind: cold-path

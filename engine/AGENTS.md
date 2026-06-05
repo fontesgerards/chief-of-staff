@@ -13,7 +13,7 @@ This system has two halves that may live in different places:
 - **Installed as a plugin:** engine files are **siblings of the running skill** inside the plugin package (`${CLAUDE_PLUGIN_ROOT}` / this skill's directory) — NOT a folder in the working directory. The **instance is the current working directory**: read and write `instance/` relative to where the user launched you (e.g. `./instance/`). The working directory contains the instance, not the engine.
 - **Running the dev repo directly:** engine and instance are siblings under the repo root (`engine/…` and `instance/…`), both relative to the working directory.
 
-When a skill says "engine `methods/write-back.md`", load it from the engine package. When it says "`instance/state/current.md`", resolve it against the working directory. If `instance/` does not exist yet, the principal hasn't onboarded — run the `onboarding` skill first.
+When a skill says "engine `methods/write-back.md`", load it from the engine package. When it says "`instance/state/current.md`", resolve it against the working directory. If `instance/` does not exist yet, the principal hasn't onboarded — run the `cos-onboarding` skill first.
 
 ## Boot order (every session)
 
@@ -25,8 +25,8 @@ When a skill says "engine `methods/write-back.md`", load it from the engine pack
 ## Invoking skills
 
 Skills live in the engine's `skills/<name>/SKILL.md`:
-- **Claude Code:** `/onboarding`, `/meeting-prep`, …
-- **Codex:** `$onboarding`, `$meeting-prep`, … (or the `/skills` menu)
+- **Claude Code:** `/cos-onboarding`, `/cos-meeting-prep`, …
+- **Codex:** `$cos-onboarding`, `$cos-meeting-prep`, … (or the `/skills` menu)
 
 ## Safety floor (never override, even before reading INSTRUCTIONS.md)
 

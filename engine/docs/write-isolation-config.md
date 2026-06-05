@@ -1,6 +1,6 @@
 # Write-isolation config — making the extractor structurally read-only
 
-> Operationalizes U6 / KTD-5. The extractor (`engine/skills/extract-from-sources.md`) must be **unable** to write `instance/memory/` — a denied capability, not an agent choice (an injection can override an instruction; it cannot override a denied capability). Researched 2026-06-04; see `U0-capability-spike.md` (c).
+> Operationalizes U6 / KTD-5. The extractor (`engine/skills/cos-extract-from-sources/SKILL.md`) must be **unable** to write `instance/memory/` — a denied capability, not an agent choice (an injection can override an instruction; it cannot override a denied capability). Researched 2026-06-04; see `U0-capability-spike.md` (c).
 >
 > **Key principle — isolate per run, not globally.** A global deny on `instance/memory/` would also block the legitimate cold-path consolidator, which *must* write memory. So the **extractor runs in a restricted profile/session**; the cold path and other skills run normally.
 

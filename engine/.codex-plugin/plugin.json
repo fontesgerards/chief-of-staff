@@ -5,8 +5,8 @@
   "author": {
     "name": "Fred Fontes"
   },
-  "homepage": "https://github.com/REPLACE-ME/chief-of-staff",
-  "repository": "https://github.com/REPLACE-ME/chief-of-staff",
+  "homepage": "https://github.com/fontesgerards/chief-of-staff",
+  "repository": "https://github.com/fontesgerards/chief-of-staff",
   "license": "MIT",
   "keywords": [
     "chief-of-staff",
@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "AI Chief of Staff",
     "shortDescription": "Local-first personal Chief of Staff with plain-text memory that gets sharper over time.",
-    "longDescription": "Set up a personal Chief of Staff that runs on your own machine. It interviews you, observes how you work, and builds a private plain-text memory it improves every week. Skills prepare you for meetings, close loops, coach you, and research your market. It proposes — you approve — and your brain never leaves your machine. Run $onboarding first to create your instance in the current folder.",
+    "longDescription": "Set up a personal Chief of Staff that runs on your own machine. It interviews you, observes how you work, and builds a private plain-text memory it improves every week. Skills prepare you for meetings, close loops, coach you, and research your market. It proposes — you approve — and your brain never leaves your machine. Run $cos-onboarding first to create your instance in the current folder.",
     "developerName": "Fred Fontes",
     "category": "Productivity",
     "capabilities": [
@@ -28,11 +28,11 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/REPLACE-ME/chief-of-staff",
+    "websiteURL": "https://github.com/fontesgerards/chief-of-staff",
     "defaultPrompt": [
-      "$onboarding",
-      "$meeting-prep for tomorrow",
-      "$loop-closing"
+      "$cos-onboarding",
+      "$cos-meeting-prep for tomorrow",
+      "$cos-loop-closing"
     ]
   }
 }

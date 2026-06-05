@@ -13,8 +13,8 @@ Then open this folder in your runtime and run **onboarding first**:
 
 | Runtime | Invoke |
 |---|---|
-| **Claude Code** (CLI or the Code tab in the desktop app) | `/onboarding` — then `/meeting-prep`, `/loop-closing`, … |
-| **Codex** (CLI) | `$onboarding` — or open the `/skills` menu and pick it |
+| **Claude Code** (CLI or the Code tab in the desktop app) | `/cos-onboarding` — then `/cos-meeting-prep`, `/cos-loop-closing`, … |
+| **Codex** (CLI) | `$cos-onboarding` — or open the `/skills` menu and pick it |
 
 > **Note on Codex syntax:** Codex uses `$skill-name` (not `/skill-name`); the old slash-prompt system is deprecated. The `/skills` menu lists everything by description.
 
@@ -38,4 +38,4 @@ Use `--copy` on native Windows or any runtime that won't traverse a symlinked `s
 
 ## Scheduled skills
 
-`consolidate-memory`, `meeting-prep`, etc. also run on the cadences in `instance/config.md` (`schedules:`). If your runtime can't schedule natively, an external `cron`/`launchd` job reads the same block — see `engine/docs/U0-capability-spike.md` (a).
+`cos-consolidate-memory`, `cos-meeting-prep`, etc. also run on the cadences in `instance/config.md` (`schedules:`). If your runtime can't schedule natively, an external `cron`/`launchd` job reads the same block — see `engine/docs/U0-capability-spike.md` (a).

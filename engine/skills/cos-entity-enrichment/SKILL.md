@@ -1,5 +1,5 @@
 ---
-name: entity-enrichment
+name: cos-entity-enrichment
 description: Keep your world model current — refresh people, accounts, projects, and competitors from recent activity, superseding stale facts rather than overwriting them.
 cadence: daily
 kind: ritual

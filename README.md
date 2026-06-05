@@ -10,24 +10,24 @@ It does not act on the world by default. It **proposes**; you approve.
 
 **As a plugin (easiest)** — Claude Code:
 ```text
-/plugin marketplace add REPLACE-ME/chief-of-staff
+/plugin marketplace add fontesgerards/chief-of-staff
 /plugin install chief-of-staff@chief-of-staff
 ```
-Then, in the folder where you want your brain to live: `/onboarding`. Codex uses the same `engine/` package — see `PUBLISH.md`. Publishing steps + the naming/collision note: `PUBLISH.md`.
+Then, in the folder where you want your brain to live: `/cos-onboarding`. Codex uses the same `engine/` package — see `PUBLISH.md`. Publishing steps + the naming/collision note: `PUBLISH.md`.
 
-**Or clone (dev / no plugin):** `git clone …`, `./setup.sh`, open the folder, `/onboarding`. See `INSTALL.md`.
+**Or clone (dev / no plugin):** `git clone …`, `./setup.sh`, open the folder, `/cos-onboarding`. See `INSTALL.md`.
 
-The **engine** is the shared plugin; your **instance** (private brain) is created by `/onboarding` in your own folder — it never lives in the plugin.
+The **engine** is the shared plugin; your **instance** (private brain) is created by `/cos-onboarding` in your own folder — it never lives in the plugin.
 
 ## The two halves
 
 ```
 chief-of-staff/
 ├─ CLAUDE.md / AGENTS.md  ← always-loaded entry (Claude / Codex) → engine/INSTRUCTIONS.md
-├─ setup.sh / INSTALL.md  ← one command to make skills invocable (/onboarding, $onboarding)
+├─ setup.sh / INSTALL.md  ← one command to make skills invocable (/cos-onboarding, $cos-onboarding)
 ├─ engine/      ← git, shareable, identical for everyone (THE PRODUCT — no personal data)
 │  ├─ INSTRUCTIONS.md   global behavior + autonomy + memory-access conventions
-│  ├─ skills/<name>/SKILL.md   invocable skills — onboarding, meeting-prep, consolidate-memory, …
+│  ├─ skills/cos-<name>/SKILL.md   invocable skills — cos-onboarding, cos-meeting-prep, cos-consolidate-memory, …
 │  ├─ methods/          write-back, problem-solving, minto, coaching, PEI
 │  ├─ templates/        entity schemas, memory-file + capture + proposal templates
 │  └─ docs/             capability spike + write-isolation config + build notes
@@ -46,7 +46,7 @@ chief-of-staff/
 
 ## Status
 
-v1 scaffold complete; skills are invocable as commands (run `./setup.sh`, then `/onboarding` in Claude or `$onboarding` in Codex — see `INSTALL.md`). **U0 capability spike resolved (2026-06-04):** scheduling ✓, connectors ✓, write-isolation ✓ (structural — enforced per-run via Claude Code `permissions.deny`+sandbox or Codex permissions profile; recipes in `engine/docs/write-isolation-config.md`). KTD-5 stays "structural." Next: seed a real `instance/` via `engine/onboarding/onboarding.md`, and add a private remote to the instance backup repo.
+v1 scaffold complete; skills are invocable as commands (run `./setup.sh`, then `/cos-onboarding` in Claude or `$cos-onboarding` in Codex — see `INSTALL.md`). **U0 capability spike resolved (2026-06-04):** scheduling ✓, connectors ✓, write-isolation ✓ (structural — enforced per-run via Claude Code `permissions.deny`+sandbox or Codex permissions profile; recipes in `engine/docs/write-isolation-config.md`). KTD-5 stays "structural." Next: run `/cos-onboarding` to seed a real `instance/`, and add a private remote to the instance backup repo.
 
 ## Core principles
 

@@ -3,5 +3,5 @@
 interface:
   display_name: "Onboarding"
 policy:
-  # Require explicit invocation ($onboarding) — never auto-trigger an install with side effects.
+  # Require explicit invocation ($cos-onboarding) — never auto-trigger an install with side effects.
   allow_implicit_invocation: false

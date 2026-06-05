@@ -1,5 +1,5 @@
 ---
-name: system-maintenance
+name: cos-system-maintenance
 description: Review what worked and what didn't this week and propose improvements to the engine itself (skills, methods, templates) — as proposals, never auto-edits. Runs weekly.
 cadence: weekly           # config.md schedules.system-maintenance (fri)
 kind: ritual
@@ -8,7 +8,7 @@ mutates: false            # PROPOSES engine changes — never auto-edits engine/
 
 # system-maintenance — improve the SYSTEM (distinct from memory)
 
-> The other half of "self-improvement." Memory maintenance is `consolidate-memory` (the cold path); **this** improves the engine itself: skills, methods, templates, instructions. Different write-target.
+> The other half of "self-improvement." Memory maintenance is `cos-consolidate-memory` (the cold path); **this** improves the engine itself: skills, methods, templates, instructions. Different write-target.
 
 ## Steps
 1. Review the week's `log/runs/` and `log/maintenance/` — what worked, what didn't, what kept failing.
