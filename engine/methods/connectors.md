@@ -44,7 +44,7 @@ Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK**
 ## Security (KTD-10) — non-negotiable
 
 - **No secret in any written file.** No token/client-secret in `config.md` **or** any MCP config (`.mcp.json` / `.cursor/mcp.json` `auth` / `config.toml`). Secrets → OS keychain / env-var reference; the config references the env var, never the literal. (Cursor's `auth` block *can* hold a `CLIENT_SECRET` — route it to the keychain instead.)
-- **Gitignore + sync-exclude** every MCP config the skill writes. The instance/working folder may be iCloud/Obsidian-synced or git-backed — an `auth` block there exfiltrates silently. Add to `.gitignore` *and* the sync-exclusion list before writing.
+- **Gitignore + sync-exclude *workspace-local* configs.** `.mcp.json` / `.cursor/mcp.json` live in the working folder, which may be iCloud/Obsidian-synced or git-backed — an `auth` block there exfiltrates silently, so add them to `.gitignore` *and* the sync-exclusion list before writing. **Codex's `~/.codex/config.toml` is user-home** — outside the workspace and the synced vault — so it needs neither (just keep its secrets in the keychain). Where the runtime offers no programmatic sync-exclusion (iCloud `.nosync`, Obsidian Sync settings), **guide the principal to exclude it manually** rather than asserting it's handled.
 - **Least-privilege scopes.** Request read-only by default and **show the scope to the principal before the click** (e.g. Gmail `gmail.readonly`, Calendar `calendar.readonly` — verify exact strings at build). Over-grant is unrecoverable after consent.
 - **The "no-secret" grep test covers every written config file, not just `config.md`.**
 
