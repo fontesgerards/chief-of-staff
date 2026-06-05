@@ -1,0 +1,9 @@
+# The engine repo is shareable and contains NO personal data.
+# instance/ is local + private — it has its own separate backup repo (see instance/.backup-instructions.md).
+instance/
+
+# OS / editor noise
+.DS_Store
+*.swp
+.idea/
+.vscode/

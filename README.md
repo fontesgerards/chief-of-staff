@@ -1,0 +1,42 @@
+# AI Chief of Staff
+
+A personal Chief of Staff that runs on top of an agent runtime (Claude Cowork / Codex): scheduled and on-demand skills, backed by a plain-text Markdown memory store, that prepares you for what's ahead, closes loops, coaches you, and **gets sharper the longer it runs**. It installs and configures itself by interviewing you.
+
+It does not act on the world by default. It **proposes**; you approve.
+
+> Build artifact of [[AI Chief of Staff — Build Plan]]. Design: [[AI Chief of Staff]] · validation: [[AI Chief of Staff — Architecture Evaluation]] · loop spec: [[AI Chief of Staff — write-back method]].
+
+## The two halves
+
+```
+chief-of-staff/
+├─ engine/      ← git, shareable, identical for everyone (THE PRODUCT — no personal data)
+│  ├─ INSTRUCTIONS.md   global behavior + autonomy + memory-access conventions
+│  ├─ skills/           daily / weekly / monthly rituals + consolidation + extractor
+│  ├─ methods/          write-back, problem-solving, minto, coaching, PEI
+│  ├─ templates/        entity schemas, memory-file + capture + proposal templates
+│  ├─ onboarding/       the conversational installer (itself a skill)
+│  └─ docs/             capability spike + build notes
+└─ instance/   ← local + private, GITIGNORED here; its own separate backup repo (one person's brain)
+   ├─ config.md         identity, goals, autonomy level, connectors, schedules
+   ├─ memory/           core · semantic · episodic · procedural · sources · archive
+   ├─ state/            current run, open loops, commitments, pending questions, corrections
+   ├─ queue/            proposals awaiting approval (outbound · approvals · review)
+   ├─ log/              run history + maintenance changelogs
+   └─ index/            optional, generated, rebuildable from Markdown
+```
+
+**Why the split:** to productize later, ship `engine/` and let the onboarding skill regenerate a fresh `instance/` for each new person. Nothing personal ever lives in the shared repo.
+
+## Status
+
+v1 in progress. **Before relying on scheduling, connectors, or the structural injection guard, run the capability spike** in `engine/docs/U0-capability-spike.md` — it confirms the runtime can actually do what the design assumes.
+
+## Core principles
+
+1. **Engine vs. instance are separate** — the shareable framework never contains anyone's personal data.
+2. **Plain text is the brain** — memory, methods, and skills are Markdown; the runtime is swappable.
+3. **Propose, never act (by default)** — every outward action lands in a review queue. Autonomy is a dial, not a hardcode.
+4. **Inward writes ≠ outward actions** — memory writes are made safe by append-only capture + git-reversible consolidation + confidence tiers, not by gating every write on approval.
+5. **Observe first, ask by exception** — learn how you work from email/docs/calendar; only ask where genuinely uncertain.
+6. **It must maintain itself** — memory and the system both decay; scheduled maintenance is first-class.
