@@ -1,5 +1,6 @@
 {
   "name": "chief-of-staff",
+  "displayName": "AI Chief of Staff",
   "version": "0.1.0",
   "description": "A personal AI Chief of Staff — local-first, plain-text memory that prepares you for what's ahead, closes loops, coaches you, and gets sharper over time. Propose-never-act by default.",
   "author": {
@@ -15,6 +16,5 @@
     "knowledge-management",
     "memory",
     "coaching"
-  ],
-  "skills": "./skills/"
+  ]
 }

@@ -38,9 +38,13 @@ Then, in the folder they want their brain to live in:
 
 `/cos-onboarding` creates `instance/` **in the current working directory** and writes a `CLAUDE.md` + `AGENTS.md` there so behavior auto-loads every session. The plugin (engine) is global; the instance is theirs and local.
 
+## How a user installs (Cursor)
+
+Cursor reads `engine/.cursor-plugin/plugin.json` and auto-discovers the `engine/skills/<name>/SKILL.md` skills (Cursor's plugin system has been native since v2.5). The repo ships a `.cursor-plugin/marketplace.json` (mirroring the Claude one). Add the marketplace and install per Cursor's plugin docs, then `/cos-onboarding`. Skills are invocable as `/cos-<name>` in Agent chat.
+
 ## How a user installs (Codex)
 
-Codex consumes the same `engine/` via its `.codex-plugin/plugin.json`. Point Codex at the marketplace/repo per current Codex plugin docs, then run `$cos-onboarding`. (Codex has no subagent layer to convert — we ship only skills, so install is clean.)
+Codex consumes the same `engine/` via its `.codex-plugin/plugin.json` (a real, native Codex manifest — `interface` block + `agents/openai.yaml` sidecar are valid). Skills install natively. We ship **no** `.codex-plugin/marketplace.json` because Codex's marketplace flow is less settled than Claude's — follow the current Codex plugin docs to add the repo (`codex plugin marketplace add fontesgerards/chief-of-staff`, per docs), or drop skills in directly: `cp -r engine/skills/* ~/.agents/skills/`. Then `$cos-onboarding`. (No subagent layer to convert — we ship only skills, so install is clean.)
 
 ## Alternative: no plugin, just clone
 
@@ -50,4 +54,14 @@ For users who'd rather not install a plugin (or want to hack on it): `git clone`
 
 Every skill is prefixed **`cos-`** (chief of staff), so commands are namespaced and collision-safe across other installed plugins/built-ins: `/cos-onboarding`, `/cos-meeting-prep`, `/cos-loop-closing`, … (Claude) and `$cos-…` (Codex). This mirrors Compound Engineering's `ce-` convention. The plugin itself is named `chief-of-staff`; only the skills carry the `cos-` prefix.
 
-> **Verify before publishing:** plugin/marketplace JSON schemas evolve. Cross-check field names against the current Claude Code docs (`/plugin`, plugins-reference, discover-plugins) and the Codex plugin docs. The structures here follow the compound-engineering plugin as of mid-2026.
+## Validation status (2026-06-05)
+
+| File | Status |
+|---|---|
+| `.claude-plugin/marketplace.json` | Validated against live Claude docs + the compound-engineering marketplace (which ships the same `metadata` + `source: <path>` shape). |
+| `engine/.claude-plugin/plugin.json` | Validated — valid as-is; skills auto-discovered from `skills/`. |
+| `engine/.codex-plugin/plugin.json` | Matches the compound-engineering Codex manifest field-for-field (incl. `skills: ./skills/` + `interface`). Native Codex format. |
+| `engine/.cursor-plugin/plugin.json` | Corrected to match the compound-engineering Cursor manifest: **no `skills` field** (auto-discovered), added `displayName`. |
+| `.cursor-plugin/marketplace.json` | Added (mirrors CE's `pluginRoot` + bare `source`). |
+
+**The one thing to smoke-test:** the Cursor marketplace `source`/`pluginRoot` resolution to `engine/` (CE uses `plugins/<name>`; we use a single `engine/`). Confirm with one real Cursor install; the Claude path is the most thoroughly verified.

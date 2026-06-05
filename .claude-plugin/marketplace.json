@@ -3,6 +3,10 @@
   "owner": {
     "name": "Fred Fontes"
   },
+  "metadata": {
+    "description": "The AI Chief of Staff — a local-first personal assistant plugin.",
+    "version": "0.1.0"
+  },
   "plugins": [
     {
       "name": "chief-of-staff",
