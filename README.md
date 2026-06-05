@@ -30,7 +30,7 @@ chief-of-staff/
 
 ## Status
 
-v1 in progress. **Before relying on scheduling, connectors, or the structural injection guard, run the capability spike** in `engine/docs/U0-capability-spike.md` — it confirms the runtime can actually do what the design assumes.
+v1 scaffold complete. **U0 capability spike resolved (2026-06-04):** scheduling ✓, connectors ✓, write-isolation ✓ (structural — enforced per-run via Claude Code `permissions.deny`+sandbox or Codex permissions profile; recipes in `engine/docs/write-isolation-config.md`). KTD-5 stays "structural." Next: seed a real `instance/` via `engine/onboarding/onboarding.md`, and add a private remote to the instance backup repo.
 
 ## Core principles
 

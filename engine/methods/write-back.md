@@ -112,7 +112,7 @@ Every fact carries `origin` (`observed`/`confirmed`/`inferred`/`imported`), orth
 
 ### 8.2 Injection defense (structural, layered — you can't scan your way out)
 Production classifiers catch only ~27–37% of *indirect* injections. So the defense is structural; the content scan is the last, weakest layer.
-1. **Least-privilege extraction (highest leverage).** `extract-from-sources.md` is **read-only** — emits `(claim, entity, confidence, origin, source, raw_excerpt)` tuples to staging and **cannot write memory**. If an injection succeeds, blast radius = staging, not the brain. *(Depends on U0 spike (c). If write-isolation is unenforceable at the runtime, this guard is **defense-in-depth, not structural** — say so, and elevate 4–5 below to primary.)*
+1. **Least-privilege extraction (highest leverage).** `extract-from-sources.md` is **read-only** — emits `(claim, entity, confidence, origin, source, raw_excerpt)` tuples to staging and **cannot write memory**. If an injection succeeds, blast radius = staging, not the brain. *(U0 spike (c) — CONFIRMED structural 2026-06-04: enforced per-run at the OS/harness level — Claude Code `permissions.deny` + sandbox, or Codex permissions profile. Recipes: `engine/docs/write-isolation-config.md`. Stays structural; layers 4–5 are backstops, not the primary.)*
 2. **Type-wrap + datamark** untrusted source text as data before the extractor sees it, so injected text can't break out into instruction context.
 3. **Sticky provenance + the §8.1 tier gate** — no source-derived content reaches `procedural`/`core` without approval, regardless of recurrence.
 4. **Never promote raw source text verbatim** — only *derived* facts/rules restated in the agent's own words.

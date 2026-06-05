@@ -29,8 +29,17 @@ Runtime-portability rescues (a) and (b) — a different scheduler or connector i
 
 | Capability | Result | Confirmed mechanism / chosen fallback | Feeds |
 |---|---|---|---|
-| (a) Scheduling | ☐ pass ☐ fallback | | U8 `config.md` schedules |
-| (b) Connectors | ☐ pass ☐ fallback | | U9 ingestion + R4 "observe" claim |
-| (c) Write-isolation | ☐ pass ☐ fallback ☐ none | | U6 extractor; KTD-5 framing |
+| (a) Scheduling | ☑ **pass** | confirmed by principal | U8 `config.md` schedules |
+| (b) Connectors | ☑ **pass** | confirmed by principal | U9 ingestion + R4 "observe" claim |
+| (c) Write-isolation | ☑ **pass (structural)** | researched 2026-06-04 — enforceable at OS/harness level on both runtimes (see below + `write-isolation-config.md`) | U6 extractor; KTD-5 stays structural |
 
-**If (c) = none:** edit `engine/methods/write-back.md` §8.2 and the README to state the injection defense is defense-in-depth, not structural, and elevate raw-diff review + provenance gate to primary.
+## (c) result — researched 2026-06-04
+
+**Verdict: PASS. KTD-5 stays "structural," not "defense-in-depth."** Runtime-enforced write-isolation of `instance/memory/` is achievable today on both candidate runtimes, producing a real OS/harness-level error on an attempted write — not an agent refusal.
+
+- **Claude Code / Cowork:** `permissions.deny` rules (`Write(...)`/`Edit(...)` path patterns) are a pre-execution harness block, unbypassable (precedes even `bypassPermissions`); OS sandbox (`sandbox.filesystem.denyWrite`, macOS Seatbelt / Linux bubblewrap) covers Bash **and** subprocesses with a real OS error; a PreToolUse hook is a deterministic third layer. **Caveat:** docs don't explicitly confirm **Cowork** honors settings.json permissions/sandbox (likely inherits Claude Code — verify once); a subagent `tools:` restriction is not currently documented, so don't rely on it.
+- **Codex:** permissions-profile system (`[permissions.<name>.filesystem.":workspace_roots"]` → `"memory" = "read"`/`"deny"`) maps to SBPL deny / read-only bind mounts; real `EPERM`; **fail-closed** (refuses to run if it can't enforce). Strongest.
+
+**Design consequence:** a *global* deny would also block the legitimate cold-path consolidator (which must write memory). So isolation is **per-extractor-run**: the extractor runs in a restricted profile/session (read source, write staging only); the cold path runs in a normal context. Exact recipes: `engine/docs/write-isolation-config.md`.
+
+**Residual to verify once:** that Cowork (if used as the runtime) honors deny+sandbox the same as the CLI. If it does not, run the *ingestion/extraction* step via the Claude Code CLI or Codex sandbox (which do enforce it) while the rest runs in Cowork.
