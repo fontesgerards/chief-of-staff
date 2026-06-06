@@ -12,6 +12,14 @@
 | The OAuth consent click | ❌ — one browser click per service, always. The security model; can't be removed. |
 | Verify the connector works | ✅ by probe (load-order-aware) |
 
+## Built-in vs bundled connectors (Claude / Cowork)
+
+Two distinct kinds — they show up differently and are wired differently (verified against Anthropic docs + the official plugin schema, 2026-06):
+
+- **Built-in connectors** (button says **Connect**) — Anthropic-managed first-party integrations: **Gmail, Google Calendar, Google Drive**, Slack, Notion, GitHub, etc. Connected **globally** by the user at **Customize → Connectors → "+" → Connect → OAuth**. A **plugin cannot declare, require, or surface these in its own Connectors tab** — the `plugin.json` schema has no `connectors`/`recommendedConnectors` field (open feature request upstream). For chief-of-staff, **Gmail + Google Calendar are built-ins**: the skill *guides the user to Customize → Connectors and verifies*; it does not (and cannot) wire them programmatically.
+  - ⚠️ **No scope picker.** Built-in OAuth **inherits the connector's permissions — you cannot narrow to read-only in Claude's UI.** The "least-privilege scope shown before the click" rule below applies to the **CLI MCP path**, not to Cowork built-ins. For built-ins, the honest disclosure is: "this connects your Google account with the connector's standard access."
+- **Bundled connectors** (button says **Install**) — third-party **MCP servers** a plugin ships via a root **`.mcp.json`** (e.g. `{"linear":{"type":"http","url":"https://mcp.linear.app/mcp"}}`). These auto-register when the plugin is enabled. Only add a bundled connector when there's a **genuine third-party MCP server with a real, verified URL** — and **never** for Gmail/Calendar (no first-party URL exists; the only third-party Google MCP routes a CEO's mail through a non-Google cloud → KTD-6 violation). Bundling is the path for, e.g., a real meeting-recording MCP if one exists.
+
 ## Detect-or-ask the runtime (KTD-5)
 
 Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK** the principal which runtime they're in. Never infer from on-disk config presence — a Cowork user can have `.mcp.json` and `claude` installed yet not be in the CLI.
@@ -34,7 +42,7 @@ Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK**
 - **Verify:** **next turn**, after reload.
 
 ### Cowork
-- **UI-only — no programmatic path.** Guide: Settings → Connectors → Connect → approve. The skill **instructs + verifies**, never configures. (This is the originally-assumed runtime; be honest that automation here is narration + verify.)
+- **UI-only — no programmatic path.** Gmail / Calendar / Drive are **built-in connectors**: guide **Customize → Connectors → "+" → Connect → OAuth** (no scope picker). The skill **instructs + verifies** (probe), never configures. Plugins can't surface built-ins in their own tab — the global directory is the path. (Cowork is the originally-assumed runtime; be honest that automation here is narration + verify.)
 
 ## Load-order-aware verify-by-probe (KTD-4)
 
@@ -45,7 +53,7 @@ Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK**
 
 - **No secret in any written file.** No token/client-secret in `config.md` **or** any MCP config (`.mcp.json` / `.cursor/mcp.json` `auth` / `config.toml`). Secrets → OS keychain / env-var reference; the config references the env var, never the literal. (Cursor's `auth` block *can* hold a `CLIENT_SECRET` — route it to the keychain instead.)
 - **Gitignore + sync-exclude *workspace-local* configs.** `.mcp.json` / `.cursor/mcp.json` live in the working folder, which may be iCloud/Obsidian-synced or git-backed — an `auth` block there exfiltrates silently, so add them to `.gitignore` *and* the sync-exclusion list before writing. **Codex's `~/.codex/config.toml` is user-home** — outside the workspace and the synced vault — so it needs neither (just keep its secrets in the keychain). Where the runtime offers no programmatic sync-exclusion (iCloud `.nosync`, Obsidian Sync settings), **guide the principal to exclude it manually** rather than asserting it's handled.
-- **Least-privilege scopes.** Request read-only by default and **show the scope to the principal before the click** (e.g. Gmail `gmail.readonly`, Calendar `calendar.readonly` — verify exact strings at build). Over-grant is unrecoverable after consent.
+- **Least-privilege scopes — *on the CLI MCP path only*.** Where the skill writes the MCP config (Claude Code CLI / Codex / Cursor), request read-only by default and **show the scope before the click** (e.g. Gmail `gmail.readonly`, Calendar `calendar.readonly` — verify exact strings at build). **Built-in connectors (Cowork "Connect") have no scope picker** (see "Built-in vs bundled" above) — disclose the connector's standard access instead; you can't narrow it.
 - **The "no-secret" grep test covers every written config file, not just `config.md`.**
 
 ## Trust tiering (KTD-6) — what's allowed on the default path
