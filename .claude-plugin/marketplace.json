@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "The AI Chief of Staff — a local-first personal assistant plugin.",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "chief-of-staff",
       "source": "./engine",
       "description": "A personal AI Chief of Staff — local-first, plain-text memory that prepares you for meetings, closes loops, coaches you, and gets sharper over time. Propose-never-act by default. Run /cos-onboarding to create your instance.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "keywords": ["chief-of-staff", "personal-assistant", "local-first", "coaching"]
     }
   ]
