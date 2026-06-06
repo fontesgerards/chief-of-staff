@@ -1,0 +1,53 @@
+{
+  "mcpServers": {
+    "Gmail": {
+      "type": "http",
+      "url": "https://gmailmcp.googleapis.com/mcp/v1",
+      "title": "Gmail",
+      "description": "Read your email so the assistant can prep meetings, follow up on threads, and surface commitments. First-party Google MCP; OAuth on Connect; read-only scope available."
+    },
+    "Google Calendar": {
+      "type": "http",
+      "url": "https://calendarmcp.googleapis.com/mcp/v1",
+      "title": "Google Calendar",
+      "description": "Read your calendar to prepare you for upcoming meetings and track your schedule. First-party Google MCP; OAuth on Connect; read-only scope available."
+    },
+    "Google Drive": {
+      "type": "http",
+      "url": "https://drivemcp.googleapis.com/mcp/v1",
+      "title": "Google Drive",
+      "description": "Search and read your documents for context. First-party Google MCP; OAuth on Connect; read-only scope available."
+    },
+    "Granola": {
+      "type": "http",
+      "url": "https://mcp.granola.ai/mcp",
+      "title": "Granola",
+      "description": "Read your meeting notes and transcripts so the assistant can capture outcomes and commitments. First-party; OAuth on Connect (sees your 'My notes' space)."
+    },
+    "Zoom": {
+      "type": "http",
+      "url": "https://mcp.zoom.us/mcp/zoom/streamable",
+      "title": "Zoom",
+      "description": "Read your Zoom recordings, transcripts, and AI summaries. First-party Zoom MCP; OAuth on Connect."
+    },
+    "Fathom": {
+      "type": "http",
+      "url": "https://api.fathom.ai/mcp",
+      "title": "Fathom",
+      "description": "Read your Fathom meeting recordings, transcripts, and summaries. First-party; OAuth on Connect."
+    },
+    "Fireflies": {
+      "type": "http",
+      "url": "https://api.fireflies.ai/mcp",
+      "title": "Fireflies",
+      "description": "Read your Fireflies transcripts, summaries, and action items. First-party; OAuth or API key on Connect."
+    },
+    "Slack": {
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp",
+      "title": "Slack",
+      "description": "Search messages and channels so the assistant has your work conversations as context. First-party Slack MCP; OAuth on Connect."
+    }
+  },
+  "recommendedCategories": ["email", "calendar", "documents", "recordings", "messaging"]
+}
