@@ -1,5 +1,5 @@
 {
-  "name": "chief-of-staff",
+  "name": "chief-of-staff-plugin",
   "owner": {
     "name": "Fred Fontes"
   },
@@ -10,7 +10,7 @@
   },
   "plugins": [
     {
-      "name": "chief-of-staff",
+      "name": "chief-of-staff-plugin",
       "source": "engine",
       "description": "A personal AI Chief of Staff — local-first, plain-text memory that prepares you for meetings, closes loops, coaches you, and gets sharper over time. Run /cos-onboarding to create your instance."
     }

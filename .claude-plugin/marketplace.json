@@ -1,5 +1,6 @@
 {
-  "name": "chief-of-staff",
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "chief-of-staff-plugin",
   "description": "The AI Chief of Staff — a local-first personal assistant plugin.",
   "owner": {
     "name": "Fred Fontes"
