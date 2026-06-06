@@ -1,23 +1,5 @@
 {
   "mcpServers": {
-    "Gmail": {
-      "type": "http",
-      "url": "https://gmailmcp.googleapis.com/mcp/v1",
-      "title": "Gmail",
-      "description": "Read your email so the assistant can prep meetings, follow up on threads, and surface commitments. First-party Google MCP; OAuth on Connect; read-only scope available."
-    },
-    "Google Calendar": {
-      "type": "http",
-      "url": "https://calendarmcp.googleapis.com/mcp/v1",
-      "title": "Google Calendar",
-      "description": "Read your calendar to prepare you for upcoming meetings and track your schedule. First-party Google MCP; OAuth on Connect; read-only scope available."
-    },
-    "Google Drive": {
-      "type": "http",
-      "url": "https://drivemcp.googleapis.com/mcp/v1",
-      "title": "Google Drive",
-      "description": "Search and read your documents for context. First-party Google MCP; OAuth on Connect; read-only scope available."
-    },
     "Granola": {
       "type": "http",
       "url": "https://mcp.granola.ai/mcp",
@@ -49,5 +31,5 @@
       "description": "Search messages and channels so the assistant has your work conversations as context. First-party Slack MCP; OAuth on Connect."
     }
   },
-  "recommendedCategories": ["email", "calendar", "documents", "recordings", "messaging"]
+  "recommendedCategories": ["recordings", "messaging"]
 }

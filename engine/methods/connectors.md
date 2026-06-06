@@ -30,15 +30,22 @@
 
 **`engine/.mcp.json` is committed/shipped with the plugin and contains no secrets** — so the KTD-10 gitignore/sync-exclude rule (below) does NOT apply to it; it applies only to per-user MCP configs a skill *writes at runtime* that could carry an `auth` block.
 
-### Catalog shipped in `engine/.mcp.json`
+### Catalog shipped in `engine/.mcp.json` (bundled)
 
-| Category | Connectors (bundled) | URL confidence |
+| Category | Connectors (bundled) | Status |
 |---|---|---|
-| Email / Calendar / Docs | **Gmail · Google Calendar · Google Drive** | verified (Google docs + Anthropic's legal plugin) |
-| Recordings | **Granola · Zoom · Fathom · Fireflies** | vendor-doc-sourced — **confirm on first Connect** (KTD-7) |
+| Recordings | **Granola · Zoom · Fathom · Fireflies** | Fathom + Fireflies **verified working** on first Connect; Granola/Zoom vendor-doc-sourced |
 | Messaging | **Slack** | verified (Slack docs + legal plugin) |
 
-All are first-party (vendor-operated), OAuth-on-Connect, no secret in config. A user connects only the tools they actually use; the rest sit idle.
+These are vendor-operated MCP servers whose OAuth supports **dynamic client registration (DCR)** — so they authenticate plug-and-play (the user clicks Connect → OAuth, no setup). A user connects only the tools they use; the rest sit idle.
+
+### Email / Calendar / Drive = Anthropic BUILT-IN connectors, NOT bundled
+
+**Do not bundle Google (Gmail/Calendar/Drive) via `googleapis.com` MCP URLs.** Those servers (`gmailmcp/calendarmcp/drivemcp.googleapis.com/mcp/v1`) **do not support DCR** — they require the user to create their own Google Cloud OAuth client and supply `clientId`/`clientSecret`. Bundling the bare URL fails with *"Incompatible auth server: does not support dynamic client registration."* (Anthropic's own legal plugin bundles a bare Drive URL and hits the same wall — it is not a working pattern.)
+
+**The correct, zero-setup path: Anthropic's built-in Google connectors.** The user connects Gmail/Calendar/Drive from the connector **directory** (Customize → Connectors on Cowork/Desktop; claude.com/connectors), which uses Anthropic's pre-registered Google OAuth app — no Google Cloud project, no DCR. Onboarding **guides the user there** rather than bundling.
+
+> ⚠️ **Claude Code CLI caveat (2026-06):** built-in Google connectors are reported to expose only auth stubs in CLI sessions (not the real tools) — so live Gmail/Calendar observation may be unavailable in CLI. On CLI, fall back to onboarding's **degraded mode** (interview + file-drop into `sources/`) for email/calendar, and connect Google built-ins from **Cowork/Desktop** where they work. Recordings (Granola/Fathom/Fireflies) work fine in CLI.
 
 ### Microsoft (Outlook mail/calendar, Teams) — NOT bundleable
 
