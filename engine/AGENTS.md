@@ -10,7 +10,7 @@ This system has two halves that may live in different places:
 - **The instance** (the principal's private brain): `instance/` — `config.md`, `memory/`, `state/`, `queue/`, `log/`.
 
 **How to resolve them:**
-- **Installed as a plugin:** engine files are **siblings of the running skill** inside the plugin package (`${CLAUDE_PLUGIN_ROOT}` / this skill's directory) — NOT a folder in the working directory. The **instance is the current working directory**: read and write `instance/` relative to where the user launched you (e.g. `./instance/`). The working directory contains the instance, not the engine.
+- **Installed as a plugin:** engine files are **siblings of the running skill** inside the plugin package (`${CLAUDE_PLUGIN_ROOT}` / this skill's directory) — NOT a folder in the working directory. The **instance lives in a dedicated folder the principal chose at onboarding** (default `~/chief-of-staff`), recorded in the working-folder entry files (`CLAUDE.md`/`AGENTS.md` written next to `instance/`). Resolve `instance/…` against **that folder**, not raw cwd. If you can't tell where the instance is (no entry file in cwd and no prior context), **ask the principal for the path** or run `cos-onboarding` to establish it — never guess or seed into cwd.
 - **Running the dev repo directly:** engine and instance are siblings under the repo root (`engine/…` and `instance/…`), both relative to the working directory.
 
 When a skill says "engine `methods/write-back.md`", load it from the engine package. When it says "`instance/state/current.md`", resolve it against the working directory. If `instance/` does not exist yet, the principal hasn't onboarded — run the `cos-onboarding` skill first.

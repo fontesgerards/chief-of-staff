@@ -10,7 +10,7 @@ run: once (or to re-seed)
 
 > One conversation that stands up a working `instance/` from the engine's `templates/` and hands the principal a `GETTING-STARTED.md`. For the future product, this **is** the activation funnel — each new person just talks to it.
 >
-> **Where the instance goes:** `instance/` is created in the **current working directory** — the folder the principal launched the runtime from. The engine (templates, methods, this skill) may be a globally-installed plugin elsewhere; resolve engine files from the plugin package and `instance/` from the working directory (engine `AGENTS.md` → "Two roots"). If an `instance/` already exists, confirm before re-seeding.
+> **Where the instance goes:** the principal's brain (`instance/`) lives in a dedicated folder they choose at the start (**Step 0a**) — defaulting to `~/chief-of-staff`, **never silently in the current working directory.** The engine (templates, methods, this skill) is resolved from the plugin package (`${CLAUDE_PLUGIN_ROOT}`); `instance/` is resolved from the chosen instance folder (engine `AGENTS.md` → "Two roots"). If an `instance/` already exists there, confirm before re-seeding.
 >
 > **Prerequisites:** run the U0 spike (engine `docs/U0-capability-spike.md`, extractor isolation) and the U9 connector spike (`docs/U9-connector-capability-spike.md`, runtime detection / config-write / commands) first — they tell this skill what's automatable on the host.
 
@@ -36,7 +36,15 @@ These five rules govern every step. They are the difference between a runbook an
 
 ## The steps
 
-### Step 0 — Connectors (runs first; step-zero)
+### Step 0a — Confirm where the brain lives (FIRST action, before anything else)
+
+> Personal data must never be seeded into a random/synced folder. **Do not assume the current working directory.** Most CLI sessions launch from somewhere incidental (a code repo, a notes vault, home) — seeding `instance/` there is almost always wrong.
+
+1. Propose a dedicated location and confirm: *"Your Chief of Staff's private brain will live at `~/chief-of-staff/instance` — sound good, or pick another folder?"* Default to **`~/chief-of-staff`**. Accept any absolute path the principal gives.
+2. **Warn if the chosen parent looks risky:** inside a cloud-synced folder (iCloud/Dropbox/OneDrive), inside another git repo, or the home dir root. Personal brain data syncing to a cloud notes folder is a privacy footgun — recommend the dedicated `~/chief-of-staff` instead.
+3. Create the folder if needed and **anchor all subsequent `instance/…` paths to it for the rest of the run.** Record the chosen path so the entry files (Step 8) and re-runs resolve to the same place.
+
+### Step 0 — Connectors (step-zero, after location is confirmed)
 
 > Attempt connector setup **before** discovery so observation has data. If it's declined or can't complete, proceed in **degraded mode** (Protocol §3) and re-observe later. Full mechanics: engine `methods/connectors.md`.
 
