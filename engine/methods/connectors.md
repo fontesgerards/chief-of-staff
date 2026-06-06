@@ -12,13 +12,23 @@
 | The OAuth consent click | ❌ — one browser click per service, always. The security model; can't be removed. |
 | Verify the connector works | ✅ by probe (load-order-aware) |
 
-## Built-in vs bundled connectors (Claude / Cowork)
+## Bundled connectors — the plugin's own Connectors tab
 
-Two distinct kinds — they show up differently and are wired differently (verified against Anthropic docs + the official plugin schema, 2026-06):
+> Verified against Anthropic's own `anthropics/claude-for-legal` plugin (which ships exactly this) + Google Workspace MCP docs, 2026-06. **Correction to an earlier version of this doc:** Gmail/Calendar/Drive *can* be bundled — they are first-party Google MCP servers, not undeclarable built-ins.
 
-- **Built-in connectors** (button says **Connect**) — Anthropic-managed first-party integrations: **Gmail, Google Calendar, Google Drive**, Slack, Notion, GitHub, etc. Connected **globally** by the user at **Customize → Connectors → "+" → Connect → OAuth**. A **plugin cannot declare, require, or surface these in its own Connectors tab** — the `plugin.json` schema has no `connectors`/`recommendedConnectors` field (open feature request upstream). For chief-of-staff, **Gmail + Google Calendar are built-ins**: the skill *guides the user to Customize → Connectors and verifies*; it does not (and cannot) wire them programmatically.
-  - ⚠️ **No scope picker.** Built-in OAuth **inherits the connector's permissions — you cannot narrow to read-only in Claude's UI.** The "least-privilege scope shown before the click" rule below applies to the **CLI MCP path**, not to Cowork built-ins. For built-ins, the honest disclosure is: "this connects your Google account with the connector's standard access."
-- **Bundled connectors** (button says **Install**) — third-party **MCP servers** a plugin ships via a root **`.mcp.json`** (e.g. `{"linear":{"type":"http","url":"https://mcp.linear.app/mcp"}}`). These auto-register when the plugin is enabled. Only add a bundled connector when there's a **genuine third-party MCP server with a real, verified URL** — and **never** for Gmail/Calendar (no first-party URL exists; the only third-party Google MCP routes a CEO's mail through a non-Google cloud → KTD-6 violation). Bundling is the path for, e.g., a real meeting-recording MCP if one exists.
+**A connector in *our* plugin's Connectors tab is an MCP server declared in the plugin-root `engine/.mcp.json`.** When chief-of-staff is installed, each entry shows up with a **Connect** button (OAuth) for the user. This is how Anthropic's legal plugins surface Google Drive, Slack, etc. Form (wrapped, with display metadata):
+
+```json
+{ "mcpServers": {
+    "Gmail": { "type": "http", "url": "https://gmailmcp.googleapis.com/mcp/v1",
+               "title": "Gmail", "description": "…" } } }
+```
+
+- **Google (first-party, verified URLs):** Gmail `https://gmailmcp.googleapis.com/mcp/v1` · Calendar `https://calendarmcp.googleapis.com/mcp/v1` · Drive `https://drivemcp.googleapis.com/mcp/v1`. OAuth 2.0 on Connect. **Read-only scopes are available** (`gmail.readonly`, `calendar.events.readonly`, `drive.readonly`) — the OAuth consent governs the scope; no token/secret goes in `.mcp.json` (OAuth servers need none).
+- **Why this is local-first-OK (KTD-6):** `googleapis.com` / `mcp.slack.com` are the providers' **own** servers (first-party). Data flows provider→Claude — the same trust boundary as connecting via the global directory. **Only *non-first-party relays* (Composio etc.) are off the default path** — that's the line, not "any hosted server."
+- **The global directory is the alternative**, not the only path: Anthropic also ships a global **Customize → Connectors** directory where a user can Connect the same first-party integrations *without* a plugin. Bundling just brings them into our plugin's tab so the user doesn't hunt.
+
+**`engine/.mcp.json` is committed/shipped with the plugin and contains no secrets** — so the KTD-10 gitignore/sync-exclude rule (below) does NOT apply to it; it applies only to per-user MCP configs a skill *writes at runtime* that could carry an `auth` block.
 
 ## Detect-or-ask the runtime (KTD-5)
 
@@ -42,7 +52,7 @@ Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK**
 - **Verify:** **next turn**, after reload.
 
 ### Cowork
-- **UI-only — no programmatic path.** Gmail / Calendar / Drive are **built-in connectors**: guide **Customize → Connectors → "+" → Connect → OAuth** (no scope picker). The skill **instructs + verifies** (probe), never configures. Plugins can't surface built-ins in their own tab — the global directory is the path. (Cowork is the originally-assumed runtime; be honest that automation here is narration + verify.)
+- **Connectors come from the plugin's bundled `engine/.mcp.json`** — Gmail / Calendar / Drive show up in the **chief-of-staff plugin's Connectors tab**. Guide the user: open the plugin → **Connectors → Connect → OAuth** (prefer read-only on the consent screen). The skill **guides + verifies** (probe); there's no config or secret to write (it's declared in the shipped `.mcp.json`). The global **Customize → Connectors** directory is the fallback if the plugin tab isn't used. (Re-Sync the marketplace after a plugin update so new connectors appear.)
 
 ## Load-order-aware verify-by-probe (KTD-4)
 
@@ -53,7 +63,7 @@ Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK**
 
 - **No secret in any written file.** No token/client-secret in `config.md` **or** any MCP config (`.mcp.json` / `.cursor/mcp.json` `auth` / `config.toml`). Secrets → OS keychain / env-var reference; the config references the env var, never the literal. (Cursor's `auth` block *can* hold a `CLIENT_SECRET` — route it to the keychain instead.)
 - **Gitignore + sync-exclude *workspace-local* configs.** `.mcp.json` / `.cursor/mcp.json` live in the working folder, which may be iCloud/Obsidian-synced or git-backed — an `auth` block there exfiltrates silently, so add them to `.gitignore` *and* the sync-exclusion list before writing. **Codex's `~/.codex/config.toml` is user-home** — outside the workspace and the synced vault — so it needs neither (just keep its secrets in the keychain). Where the runtime offers no programmatic sync-exclusion (iCloud `.nosync`, Obsidian Sync settings), **guide the principal to exclude it manually** rather than asserting it's handled.
-- **Least-privilege scopes — *on the CLI MCP path only*.** Where the skill writes the MCP config (Claude Code CLI / Codex / Cursor), request read-only by default and **show the scope before the click** (e.g. Gmail `gmail.readonly`, Calendar `calendar.readonly` — verify exact strings at build). **Built-in connectors (Cowork "Connect") have no scope picker** (see "Built-in vs bundled" above) — disclose the connector's standard access instead; you can't narrow it.
+- **Least-privilege scopes.** The Google MCP servers offer read-only scopes (`gmail.readonly`, `calendar.events.readonly`, `drive.readonly`) — **prefer read-only**, and the OAuth **consent screen shows the scope before the user approves**. (The `.mcp.json` declares the server, not the scope; the server + consent govern it — so favor read-only by reviewing the consent screen, and tell the user what they're granting.) Over-grant is unrecoverable after consent.
 - **The "no-secret" grep test covers every written config file, not just `config.md`.**
 
 ## Trust tiering (KTD-6) — what's allowed on the default path
@@ -73,6 +83,6 @@ Connector-sourced text (email bodies, calendar titles/descriptions, transcripts)
 | Claude Code CLI | project `.mcp.json` / `claude mcp add` | `/mcp` → OAuth | in-session |
 | Codex | `~/.codex/config.toml` (user-home) | `codex mcp login` → OAuth | next turn |
 | Cursor | `.cursor/mcp.json` (+ reload) | OAuth on first use | next turn |
-| Cowork | — (Settings UI) | Settings → Connectors → approve | after UI connect |
+| Cowork | bundled `engine/.mcp.json` (plugin) | plugin → Connectors → Connect → OAuth | after Connect |
 
 *Specific server URLs + exact scope strings: verify at setup (KTD-7). Secrets: keychain/env-ref only (KTD-10). Non-first-party egress: explicit consent only (KTD-6).*
