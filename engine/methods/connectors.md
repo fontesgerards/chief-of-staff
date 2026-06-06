@@ -30,6 +30,20 @@
 
 **`engine/.mcp.json` is committed/shipped with the plugin and contains no secrets** — so the KTD-10 gitignore/sync-exclude rule (below) does NOT apply to it; it applies only to per-user MCP configs a skill *writes at runtime* that could carry an `auth` block.
 
+### Catalog shipped in `engine/.mcp.json`
+
+| Category | Connectors (bundled) | URL confidence |
+|---|---|---|
+| Email / Calendar / Docs | **Gmail · Google Calendar · Google Drive** | verified (Google docs + Anthropic's legal plugin) |
+| Recordings | **Granola · Zoom · Fathom · Fireflies** | vendor-doc-sourced — **confirm on first Connect** (KTD-7) |
+| Messaging | **Slack** | verified (Slack docs + legal plugin) |
+
+All are first-party (vendor-operated), OAuth-on-Connect, no secret in config. A user connects only the tools they actually use; the rest sit idle.
+
+### Microsoft (Outlook mail/calendar, Teams) — NOT bundleable
+
+Microsoft's first-party MCP servers (**Work IQ**, `agent365.svc.cloud.microsoft/.../tenants/{tenantId}/...`) are **tenant-scoped** — the URL contains the user's tenant GUID, requires registering an Entra app, and needs a **Microsoft 365 Copilot license**. So there's no static URL to bundle the way Google/Slack do. The supported path for Outlook/Teams is **Anthropic's built-in Microsoft 365 connector** (Customize → Connectors → Microsoft 365 — directory-only, read-only, no Copilot license; covers mail/calendar/Teams/SharePoint/OneDrive). **A plugin can't bundle it** — the onboarding skill *guides the user to connect it from the directory* if they're on Microsoft. (Work IQ per-tenant bundling is an advanced/enterprise option, out of v1 scope.)
+
 ## Detect-or-ask the runtime (KTD-5)
 
 Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK** the principal which runtime they're in. Never infer from on-disk config presence — a Cowork user can have `.mcp.json` and `claude` installed yet not be in the CLI.
