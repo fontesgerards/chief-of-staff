@@ -93,14 +93,19 @@ These five rules govern every step. They are the difference between a runbook an
 ### Step 6 — Seed the five-type memory
 - Instantiate `core/` (gated above), `semantic/`, `episodic/` (recent), `procedural/` (template), `sources/` (with retention), plus `state/`, `queue/`, `log/`, optional `index/` from `templates/`. **All seeded facts `origin: imported`.** A dense, correct seed bootstraps usefulness and hardens against later poisoning.
 
-### Step 7 — Config & schedule → `config.md`
-- Autonomy = propose-only; fill `connectors:` (names + status from Step 0), `schedules:` (cadence per skill), `queue:` lifecycle, `write_back:` tuning. **No secrets** (keychain/env-ref only). Initialize the `instance/` backup repo (`.backup-instructions.md`).
+### Step 7 — Config & schedule → `config.md` (+ activate the schedule)
+- **Write the config first.** Autonomy = propose-only; fill `connectors:` (names + status from Step 0), `schedules:` (cadence per skill — this block is the **runtime-agnostic source of truth**; an external driver can read the same cadence), `queue:` lifecycle, `write_back:` tuning. **No secrets** (keychain/env-ref only). Initialize the `instance/` backup repo (`.backup-instructions.md`).
+- **Then offer to make the schedules actually fire** — the cadence block alone runs nothing. Ask once (use the structured-question tool, §1): *"I've recorded the cadence. Want me to wire these to run on their own now?"* Then **branch on the runtime detected in Step 0** — observe→confirm→act, never overstate what's live:
+  - **Claude Code / Cowork — self-register via tool call.** Echo back what will fire and when, confirm once, then register each scheduled skill. On **Claude Code** use the durable cron tool (`CronCreate` with `durable: true`, or a cloud **routine** via `/schedule` for true unattended runs — plain in-session cron is REPL-idle-only and auto-expires ~7 days, so it's *not* set-and-forget); on **Cowork** use the scheduled-task tool (`create_scheduled_task`). Each registered prompt must be **self-contained** (future runs don't see this conversation): *"Run `cos-meeting-prep` for the instance at `<chosen path>`."* Mark these `status: live` in `config.md`.
+  - **Codex (app) — register conversationally.** No named tool schema; *describe* each automation (skill + cadence + which instance path) so Codex creates it as an Automation, confirm the list. Mark `status: live`.
+  - **Codex (CLI) / Cursor — can't self-schedule; hand off honestly.** Say so plainly, then offer the real paths: Cursor → create the Automation in the dashboard using the cron values from `schedules:`; either → an external `launchd`/cron entry that invokes the headless CLI (`codex exec` / `agent -p`) on that cadence, reading this same block. Mark `status: manual` (user must finish the click) or `intent-only` (recorded, no driver yet) — **never** `live`.
+- **Safety floor on every scheduled run (state it once):** a scheduled skill still only **proposes** — it drafts into `instance/queue/`, and **never sends/posts/schedules outward unattended.** Auto-run + outward-act is exactly what the propose-only dial forbids.
 
 ### Step 8 — Entry files → working-folder `CLAUDE.md` + `AGENTS.md`
 - Write thin entry files (template `templates/entry-CLAUDE.md`) so behavior auto-loads every session: identity one-liner + **safety floor inlined** + pointer to the engine's `INSTRUCTIONS.md`. Inlining the floor keeps the folder safe even if the plugin path can't resolve.
 
 ### Step 9 — Graduation doc → working-folder `GETTING-STARTED.md`
-- Write the human-facing how-to (template `templates/getting-started.md`) in the principal's **own voice** (reads `core/voice.md`): how it works, what's connected (reflect live `config.md` status — pending/blocked shown honestly, never as configured), the `/cos-*` commands with example prompts, the correction loop, the weekly rhythm, honest limitations. **Generatable from interview-only state** so an abandoned-at-OAuth run still leaves a working assistant + how-to (the activation backstop).
+- Write the human-facing how-to (template `templates/getting-started.md`) in the principal's **own voice** (reads `core/voice.md`): how it works, what's connected (reflect live `config.md` status — pending/blocked shown honestly, never as configured), **what runs on its own** (reflect each schedule's real status — `live` vs `manual`/`intent-only`; a `manual` schedule is described as "needs one setup step," never as already running), the `/cos-*` commands with example prompts, the correction loop, the weekly rhythm, honest limitations. **Generatable from interview-only state** so an abandoned-at-OAuth run still leaves a working assistant + how-to (the activation backstop).
 
 ---
 
@@ -117,6 +122,7 @@ A populated, scheduled, working `instance/` in the current folder + `CLAUDE.md`/
 - **Location:** Step 0a proposes a detected home subfolder (never `/`, a system dir, or raw cwd); cloud-sync of the chosen parent is probed and warned.
 - **Structured questions:** on a runtime with a choice/elicitation tool (e.g. Claude Code `AskUserQuestion`), choice-style questions use it rather than free-text prose.
 - **Voice:** a sample email (grounded on a real inbox thread when available, else generated from context) is shown **inline in the chat** for "sound like you?" calibration — no email/draft tool is called, nothing queued or sent; `core/voice.md` within budget; overflow in `procedural/drafting.md`.
+- **Schedule activation:** after writing the `schedules:` block, the run offers to make it fire and branches on runtime — self-registers via tool call on Claude Code/Cowork (`status: live`), registers conversationally on Codex-app, and hands off honestly on Codex-CLI/Cursor (`status: manual`/`intent-only`, never `live`). `config.md` status matches reality and getting-started reflects it; no scheduled run sends outward (proposes only).
 - **Graduation:** `GETTING-STARTED.md` lands in the user's voice, reflects live status, lists `/cos-*` commands.
 
 > **Deferred to product track:** multi-tenant regeneration + data-isolation. Not a v1-of-one concern.
