@@ -17,7 +17,7 @@ mutates: false            # reads state + proposes; does NOT stamp Last update (
    - **Stalled** — an open loop whose `Last update` is older than `config.md` `loop_closing.stalled_after_days` (default 7). This measures **movement, not age** — `Last update` is stamped by skills that actually advance a loop, so a long-running loop that's still moving is *not* flagged.
    - **Overdue** — a commitment whose `Due` is in the past and not closed.
 3. **Propose a next step / owner** for each flagged item. Where it needs an outward nudge, write a **proposal** to `queue/outbound/` — in the principal's voice (`core/voice.md` + `procedural/drafting.md`); never send.
-4. **Deliver** the summary per `config.md` `delivery.loop-closing` (default: `.md` file under `state/briefs/`), grouped **unassigned / stalled / overdue**. Delivery to the principal's own channel is inward, not a proposal.
+4. **Deliver** the summary (from `engine/templates/loop-closing-brief.md`) per `config.md` `delivery.loop-closing` (default: `.md` file under `state/briefs/`), grouped **unassigned / stalled / overdue**. Delivery to the principal's own channel is inward, not a proposal.
 5. **If nothing is flagged, skip the run** — no summary, no empty file (as with meeting-prep / follow-up).
 
 > **Why this skill does not stamp `Last update`:** stamping on mere surfacing would make every loop look "moved" each week and mask real staleness. loop-closing only reads movement; it keeps surfacing a loop until something real (a meeting via `cos-meeting-follow-up`, or the principal) advances it. Re-surfacing a loop that already has a queued nudge is intended — nothing drops silently.

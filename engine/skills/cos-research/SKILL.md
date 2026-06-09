@@ -20,7 +20,7 @@ mutates: true             # hot-path: APPENDS to semantic/ (Tier 0); never edits
    - **New sourced fact** about a watched entity → **append** it to `semantic/competitors/` (or `concepts/`) from the staged tuple.
    - **A fact that *changed* / contradicts** what's stored → do **not** edit/supersede here. **Stage a `#fact` correction** (`entity:` set) for the **cold path** (`cos-consolidate-memory`) to supersede (`#fact` promotes at threshold 1).
 5. **Summarize what changed and the so-what** (`minto.md`).
-6. **Deliver** the digest per `config.md` `delivery.research` (default: `.md` file under `state/briefs/`). On a quiet week with **no material change**, deliver a short *"no material changes"* note (so you know it ran), not a long empty digest.
+6. **Deliver** the digest (from `engine/templates/research-digest.md`, so-what first) per `config.md` `delivery.research` (default: `.md` file under `state/briefs/`). On a quiet week with **no material change**, the **So what** section carries a short *"no material changes"* note (so you know it ran) — same template, no long empty digest.
 
 ## Output
 A research digest (so-what first) on the configured channel + **appended** sourced facts; changed facts staged as `#fact` corrections for the cold path. No inline supersedes.

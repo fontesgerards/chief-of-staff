@@ -16,7 +16,7 @@ mutates: true             # hot-path: APPENDS the weekly note to episodic/coachi
 3. Review the **past 7 days** of `episodic/` (meetings, decisions, interactions) for real moments.
 4. Apply the strengths-coaching method: anchor on a strength, name one or two specific, role-relevant moves grounded in actual episodes. **Light week** (little to draw on) → don't manufacture feedback; give just the forward experiment.
 5. End with a concrete experiment for the coming week.
-6. **Write the note** to `episodic/coaching/YYYY-MM-DD.md` (append-only, Tier 0 — this is what next week's Step 1 reads) and **deliver** it per `config.md` `delivery.coaching` (default: `.md` file under `state/briefs/`). Inward — no outward action.
+6. **Write the note** from `engine/templates/coaching-note.md` to `episodic/coaching/YYYY-MM-DD.md` (append-only, Tier 0 — this is what next week's Step 1 reads; keep the **Experiment** section a single checkable behavior) and **deliver** it per `config.md` `delivery.coaching` (default: `.md` file under `state/briefs/`). Inward — no outward action.
 
 ## Output
 A short, specific coaching note (not a list): the follow-up on last week's experiment, one or two strength-anchored moves, and this week's experiment. Stored in `episodic/coaching/` and delivered to the configured channel.

@@ -41,10 +41,10 @@ mutates: true             # the ONLY skill allowed to edit/delete memory
 - **Bound the review surface:** cap source-derived promotions at `write_back.source_derived_cap_per_batch` (default 5) **per batch** — this now matters because daily `cos-entity-enrichment` and weekly `cos-research` stage source-derived `#fact` corrections, which promote at threshold 1. Overflow **defers to next week, logged** (oldest-first), so one noisy week can't bloat the batch diff. Segregate source-derived diffs from internal corrections in the review surface.
 
 ## Outputs
-1. `instance/log/maintenance/<date>.md` — the changelog (every operation, with before/after + tier).
+1. `instance/log/maintenance/<date>.md` from `engine/templates/consolidation-changelog.md` — the changelog (every operation, before/after + tier) **and** the health report. Keep the health-report table shape stable: `cos-system-maintenance` machine-reads it.
 2. A git commit of `instance/` (the diff is the review surface).
 3. Tier-2 proposals appended to `instance/queue/review/review-<date>.md`.
-4. The health report (per-tag rate or "insufficient data", promotion-survival, any mistagging/`#other` flags).
+4. The health report **is the §Health report section** of that maintenance file (per-tag rate or "insufficient data", promotion-survival, mistagging/`#other` flags, source-derived-cap status) — not a separate file.
 5. Backup commit per `instance/.backup-instructions.md` cadence.
 
 ## Verification (a week of seeded captures)

@@ -17,7 +17,7 @@ mutates: false            # PROPOSES engine changes — never auto-edits engine/
    - **Principal-specific** (a *this-principal* preference: tone, emphasis, a checklist item that suits them) → **not yours.** Leave it to the **cold path**, which promotes `#process`/`#omission` into `procedural/<skill>.md`. Do **not** propose an engine edit.
    - **Structural** (would mislead *any* principal: a step that's wrong for everyone, an ambiguous instruction, a template gap, a taxonomy defect) → **propose an `engine/` change.** A pattern only generalizes after it shows up across distinct contexts — don't promote a one-off to the engine.
 4. **Propose** structural changes to `engine/` (skill/method/template/INSTRUCTIONS edits) as a proposal in `queue/` — **never auto-edit `engine/`.** The principal approves; engine changes are deliberate.
-5. **Deliver** the "what worked / what didn't" summary per `config.md` `delivery.system-maintenance` (default: `.md` file under `state/briefs/`); engine proposals stay in `queue/`. **Clean week** (no structural friction) → a short *"no changes proposed"* note, not a manufactured proposal.
+5. **Deliver** the summary (from `engine/templates/system-maintenance-note.md`) per `config.md` `delivery.system-maintenance` (default: `.md` file under `state/briefs/`); engine proposals stay in `queue/`. The note records the **engine-vs-procedural boundary call** (its "Left to the cold path" section). **Clean week** (no structural friction) → the *"No changes proposed"* form, not a manufactured proposal.
 
 ## Output
 A "what worked / what didn't" summary on the configured channel + any **structural** engine-change proposals in the queue. Principal-specific friction is left to the cold path; a healthy week yields a short no-op note.

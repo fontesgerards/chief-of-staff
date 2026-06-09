@@ -15,7 +15,7 @@ mutates: true             # hot-path: APPENDS the monthly snapshot to episodic/g
 2. **Review progress against last month's snapshot** — what advanced, what stalled, what slipped (grounded in milestones/decisions, not impressions).
 3. Use `methods/problem-solving.md` if the principal is weighing a real trade-off.
 4. **Propose** an updated `core/current-priorities.md`. Editing `core/` is **Tier 2** — surface the change as a raw-diff proposal in the review surface for approval. (Propose-only; never auto-edit `core/`.)
-5. **Write the snapshot** to `episodic/goals/YYYY-MM.md` (append-only, Tier 0): the month-in-review + the goals/priorities **as committed** this cycle — this is what next month's Step 1 reads. Record the priorities *as they stand approved*, not the unapproved Tier-2 draft. **Deliver** the month-in-review per `config.md` `delivery.goal-setting` (default: `.md` file under `state/briefs/`).
+5. **Write the snapshot** from `engine/templates/goals-snapshot.md` to `episodic/goals/YYYY-MM.md` (append-only, Tier 0): the month-in-review + the goals/priorities **as committed** this cycle — this is what next month's Step 1 reads. Record the priorities *as they stand approved*, not the unapproved Tier-2 draft. **Deliver** the month-in-review per `config.md` `delivery.goal-setting` (default: `.md` file under `state/briefs/`).
 
 ## Output
 A proposed priority update (Tier-2 approval, to the queue) + a month-in-review delivered to the configured channel + the `episodic/goals/` snapshot for continuity.
