@@ -1,0 +1,17 @@
+{
+  "//": "Copy the hooks block into your instance's .claude/settings.json to enable the provenance guard. $CLAUDE_PROJECT_DIR resolves to the working folder that holds instance/.",
+  "//pretooluse": "Optional companion: a PreToolUse deny makes the core/ write-ban PREVENTIVE (the PostToolUse hook below is corrective). See engine/docs/write-isolation-config.md.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/engine/eval/hooks/provenance_check.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
