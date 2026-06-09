@@ -1,0 +1,29 @@
+name: eval
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "engine/**"
+      - ".github/workflows/eval.yml"
+  pull_request:
+    paths:
+      - "engine/**"
+      - ".github/workflows/eval.yml"
+
+jobs:
+  structural:
+    name: structural eval
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dev deps
+        run: pip install -r engine/eval/requirements.txt
+
+      - name: Run structural eval (all scenarios)
+        run: python3 engine/eval/run_all.py
