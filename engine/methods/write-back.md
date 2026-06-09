@@ -61,7 +61,7 @@ If the principal *accepts* a proposal unchanged, that is **positive signal**, no
 2. Promote a group if **any member has `strength: rule`** OR **count ≥ the tag's threshold**.
 3. **Draft the edit** to the tag's single target. `#fact` → supersede, don't overwrite (stamp `valid_until`, append new). `#process`/`#omission` → add/amend a rule or checklist line. Synthesize the group's `delta`s into one rule — don't paste verbatim.
 4. **Diversity check** — confirm the cluster spans *distinct contexts* (different meetings/recipients/accounts), not the same situation repeated. Broad pattern → a `core/` rule; narrow → a procedural note.
-5. **Classify the safety tier** (§5.4); route Tier-2 to the daily brief, auto-apply Tier-1 with a changelog.
+5. **Classify the safety tier** (§5.4); route Tier-2 to the review surface, auto-apply Tier-1 with a changelog.
 6. **Mark** promoted corrections `status: promoted` with a backlink to the resulting edit.
 7. **Decay** — corrections that never cluster and age past `write_back.decay_weeks` (config) → `status: dismissed`, logged.
 8. **Report** the health metric (§7).
@@ -72,17 +72,17 @@ If the principal *accepts* a proposal unchanged, that is **positive signal**, no
 |---|---|---|
 | **0 — Auto, append-only** | observations, new sourced facts, state updates (hot path) | none; reversible by git |
 | **1 — Auto + changelog** | merges, supersedes, decay, most `#process`/`#fact` promotions | reviewable git diff + `log/maintenance/` entry; reviewed in batch |
-| **2 — Propose to queue** | editing `core/` identity/voice/autonomy/priorities · deleting sourced evidence · carrying **source-derived** content into `procedural`/`core` | surfaces in the daily brief as a **raw diff** for explicit approval |
+| **2 — Propose to queue** | editing `core/` identity/voice/autonomy/priorities · deleting sourced evidence · carrying **source-derived** content into `procedural`/`core` | surfaces in the review surface as a **raw diff** for explicit approval |
 
 `#voice`/`#priority`/`#scope` promote into `core/` → **Tier 2 by construction**. `#process`/`#omission`/`#fact` are usually Tier 1 — *unless* their content is source-derived crossing into procedural/core, which forces Tier 2 (§8.1 gate). The autonomy dial in `config.md` sets the Tier-1↔Tier-2 line.
 
 ## 6. Worked examples
 
-- *"This recap is too formal, cut the preamble."* → `[#voice], nudge`. 4th this week → drafts `core/voice.md` + `procedural/drafting.md` edit (Tier 2) → daily brief → approve.
+- *"This recap is too formal, cut the preamble."* → `[#voice], nudge`. 4th this week → drafts `core/voice.md` + `procedural/drafting.md` edit (Tier 2) → review surface → approve.
 - *"Andre is our CTO, not VP Eng."* → `[#fact], entity: people/andre-maligian, nudge`. Threshold 1 → supersede stale fact (Tier 1) → changelog.
 - *"Always lead prospect prep with their pain, not our product."* → `[#process], skill: meeting-prep, rule`. Promotes at count 1 → amends `procedural/meeting-prep.md` (Tier 1).
 - *"Never imply we're recruiting from TBC."* → `[#relationship], entity: accounts/tbc, rule`. Threshold 1 + rule → relationship file (Tier 1, flagged high-sensitivity).
-- *"Don't draft board comms without asking me first."* → `[#scope], rule` → `core/autonomy.md` (Tier 2) → daily brief.
+- *"Don't draft board comms without asking me first."* → `[#scope], rule` → `core/autonomy.md` (Tier 2) → review surface.
 - *"You keep dropping last meeting's open commitments from prep."* → `[#omission], skill: meeting-prep`. 2nd → adds a checklist line to `procedural/meeting-prep.md` (Tier 1).
 
 ## 7. The health metric (how "better over time" stays honest)
@@ -116,10 +116,10 @@ Production classifiers catch only ~27–37% of *indirect* injections. So the def
 2. **Type-wrap + datamark** untrusted source text as data before the extractor sees it, so injected text can't break out into instruction context.
 3. **Sticky provenance + the §8.1 tier gate** — no source-derived content reaches `procedural`/`core` without approval, regardless of recurrence.
 4. **Never promote raw source text verbatim** — only *derived* facts/rules restated in the agent's own words.
-5. **Review the raw diff, not the summary.** The daily brief shows the actual Markdown block being written. Defeats "Lies-in-the-Loop."
+5. **Review the raw diff, not the summary.** The review surface shows the actual Markdown block being written. Defeats "Lies-in-the-Loop."
 6. **Content scan = triage only.** High-recall scan for instruction-shaped / social-engineering framing routes to review; it never gates or auto-approves.
 
-Every promotion is a revertible git commit. A densely-seeded brain resists poisoning (correct memories cut attack success ~62%→~7% in tests), so onboarding's day-one seed doubles as security. **Bound the review surface** so batch review doesn't degrade under fatigue: cap source-derived promotions per batch and visually segregate source-derived diffs (the only lines that can carry an injection) from internal corrections.
+Every promotion is a revertible git commit. A densely-seeded brain resists poisoning (correct memories cut attack success ~62%→~7% in tests), so onboarding's day-one seed doubles as security. **Bound the review surface** so batch review doesn't degrade under fatigue: cap source-derived promotions at `write_back.source_derived_cap_per_batch` (config, default 5) per batch — overflow defers to the next week, oldest-first — and visually segregate source-derived diffs (the only lines that can carry an injection) from internal corrections.
 
 ### 8.3 Size budgets force consolidation
 Each always-loaded `core/` file declares a `budget_chars`. When a cold-path write would exceed it, **consolidate or supersede before adding**. Bounded size creates selection pressure and keeps the always-loaded context small. Episodic/sources/semantic are unbounded (retrieved on demand). *(Enforcement: a small char-count helper in the cold path flags over-budget core/ files and proposes consolidation — not a hard runtime block.)*

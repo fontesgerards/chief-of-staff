@@ -37,9 +37,17 @@ Coverage matches chlokey's discovery depth; framing is ours.
 2. `[ask][must]` Top 3 things that matter most this month?
 3. `[ask]` Anything you've explicitly deprioritized / "not now"?
 
+## Bank E — Research watch list → `procedural/research.md`  *(the "what" for `cos-research`; optional)*
+1. `[ask]` What should I track for you each week — **topics / technologies** to watch?
+2. `[ask]` Which **companies / competitors** should I keep an eye on?
+3. `[ask]` Any **people / influencers / publications** whose moves you want flagged?
+4. `[ask]` How do you want the weekly digest — bottom-line-first, sources, length?
+
+> The `cos-research` skill provides the *structure*; this bank provides the *what*. Seed answers into `procedural/research.md` (`origin: imported`). **Optional** — if the principal isn't sure, skip it; research stays dormant until a watch list exists (it won't invent coverage). `[obs]` competitors already in `semantic/` can be offered as a starting set to confirm.
+
 ---
 
-## Routing summary (each bank → its `core/` write-target)
+## Routing summary (each bank → its write-target)
 
 | Bank | Write-target | Gate? |
 |---|---|---|
@@ -47,5 +55,6 @@ Coverage matches chlokey's discovery depth; framing is ours.
 | B — How you work | `core/operating-context.md` (+ `procedural/` prefs) | yes for core/ |
 | C — Boundaries | `core/autonomy.md` (+ `semantic/relationships/`) | yes (core/) |
 | D — Priorities | `core/current-priorities.md` | yes (core/) |
+| E — Research watch list | `procedural/research.md` | no (procedural, `origin: imported`) |
 
 **Reminder:** every `core/` write goes through the hard approval gate (show draft → explicit yes). Ask `[obs]` items only when observation actually failed; in degraded mode (no connectors) ask the `[must]` items and say you're asking because you can't observe yet.

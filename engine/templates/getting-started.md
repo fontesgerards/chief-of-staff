@@ -14,7 +14,7 @@
 - **Memory:** seeded — {{which core/ files, roughly how many people/accounts}}.
 - **Connectors:** {{per connector: ✅ connected & verified · ⏳ pending your OAuth click · ⛔ blocked (admin) — with the one action to finish each. NEVER list a pending connector as connected.}}
 - **Voice:** captured from your real messages.
-- **Runs on its own:** {{which scheduled skills, on what cadence — from config.md schedules}}.
+- **Runs on its own:** {{scheduled skills + cadence from config.md schedules, by real status — ✅ live (actually firing) · 🔧 needs one setup step (status: manual — name the click, e.g. "add it in the Cursor dashboard") · 📝 recorded only, not yet running (status: intent-only). NEVER describe a manual/intent-only schedule as already running.}}.
 
 ## How to use it day-to-day
 

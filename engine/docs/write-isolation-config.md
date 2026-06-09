@@ -62,9 +62,19 @@ enabled = false
 
 Invoke the extraction run with `codex --permissions-profile extractor …`. Precedence is `deny > write > read`; `"read"` on `instance/memory` blocks writes at the OS level (SBPL deny / read-only bind mount), and Codex **fails closed** — it refuses to run if it can't enforce the policy. Alternative: scope the extractor's cwd to a staging dir (`--cd …`) so `instance/memory` is entirely outside its workspace.
 
+## Web sources — the two-step (research)
+
+The restricted extractor profile has **network off** (`network.enabled = false` / `[permissions.extractor.network] enabled = false`), so it cannot fetch the web. `cos-research` must therefore split fetching from extraction so untrusted external content is never reasoned-over with memory-write access:
+
+1. **Fetch-to-file (network-on, no memory write beyond `sources/`).** A retrieval step writes raw pages to `instance/memory/sources/web/` **without loading the body into a memory-capable acting context** — pipe bytes to disk (`curl -fsSL <url> -o instance/memory/sources/web/<slug>.html`, or a WebFetch whose output is written straight to file), don't reason over the content. This step needs network but **no** write to `instance/memory/{core,semantic,procedural}/`; restrict it the same way (memory read-only except `sources/`), network on.
+2. **Isolated extraction (restricted, network-off).** The standard extractor profile above reads `instance/memory/sources/web/` and stages tuples — identical to any other `source_kind`.
+
+If a runtime cannot fetch-without-loading (no file-piping tool, body always enters context), research falls back to **datamark-discipline-only** for that fetch and must say so — it's weaker than OS isolation, and the append-only + stage-changes rule is then the only guard.
+
 ## Verification (the U6 test, made real)
 
 From inside a restricted extractor run, attempt `echo x > instance/memory/test.md`:
 - **Expected:** a runtime/OS-level error (permission denied / EPERM / harness block), **not** the agent saying "I shouldn't do that."
 - Writing `instance/memory/sources/probe.md` and `instance/log/runs/probe.md` **succeeds** (the carve-outs work).
 - The same write from the *normal* (cold-path) profile **succeeds** — proving isolation is per-run, not global.
+- **Web two-step:** the network-on fetch step writes only under `instance/memory/sources/web/`; the network-off extractor stages from those files — neither step writes canonical `instance/memory/`.
