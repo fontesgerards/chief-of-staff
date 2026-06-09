@@ -33,7 +33,7 @@ def split_frontmatter(text: str):
 
 def parse(path: Path):
     """Return (meta: dict, body: str) for a markdown file."""
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8-sig")  # strip a BOM if the file was saved with one
     meta_text, body = split_frontmatter(text)
     meta = {}
     if meta_text:
@@ -49,8 +49,31 @@ def parse(path: Path):
     return meta, body
 
 
+def _scalar(v: str):
+    """Coerce a bare scalar to bool/int/float/None like yaml.safe_load would, for parity."""
+    v = v.strip().strip('"').strip("'")
+    low = v.lower()
+    if low == "true":
+        return True
+    if low == "false":
+        return False
+    if low in ("null", "~", ""):
+        return None
+    try:
+        return int(v)
+    except ValueError:
+        pass
+    try:
+        return float(v)
+    except ValueError:
+        return v
+
+
 def _fallback_parse(meta_text: str) -> dict:
-    """Tiny `key: value` parser for restricted frontmatter (scalars + inline lists)."""
+    """Tiny `key: value` parser for restricted frontmatter (scalars + inline lists).
+
+    Coerces scalar types so behavior matches pyyaml when it isn't installed.
+    """
     out: dict = {}
     for line in meta_text.splitlines():
         stripped = line.strip()
@@ -63,7 +86,7 @@ def _fallback_parse(meta_text: str) -> dict:
             val = val.split("  #", 1)[0].strip()
         if val.startswith("[") and val.endswith("]"):
             inner = val[1:-1].strip()
-            out[key] = [v.strip().strip('"').strip("'") for v in inner.split(",") if v.strip()]
+            out[key] = [_scalar(v) for v in inner.split(",") if v.strip()]
         else:
-            out[key] = val.strip('"').strip("'")
+            out[key] = _scalar(val)
     return out

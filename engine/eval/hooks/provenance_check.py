@@ -35,6 +35,8 @@ ENTITY_DIRS = ("/memory/semantic/", "/memory/episodic/", "/memory/procedural/")
 
 
 def _payload() -> dict:
+    if sys.stdin.isatty():  # run manually without piped input — don't block on read
+        return {}
     try:
         return json.loads(sys.stdin.read() or "{}")
     except Exception:
@@ -74,8 +76,12 @@ def main() -> int:
     tin = data.get("tool_input", {}) or {}
     raw_path = tin.get("file_path") or tin.get("path") or ""
     path = _norm(raw_path)
-    if "/instance/memory/" not in path:
+    if "instance/memory/" not in path:  # leading-slash-agnostic: works for relative or absolute paths
         return 0  # only guard the memory store
+
+    idx = path.find("instance/memory")
+    rel = path[idx + len("instance/"):]                  # -> memory/...
+    memory_root = Path(path[: idx + len("instance/memory")])  # -> .../instance/memory
 
     # Read the post-write content from disk; fall back to the payload's content.
     text = ""
@@ -87,12 +93,10 @@ def main() -> int:
     # --- Safety floor: core/ is Tier-2 only ---
     if "/memory/core/" in path and os.environ.get("COS_TIER2_APPROVED") != "1":
         _block(
-            f"edit to core/ ({path.split('/instance/')[-1]}) requires an approved Tier-2 "
+            f"edit to core/ ({rel}) requires an approved Tier-2 "
             "proposal. Route it through instance/queue/review/ as a raw diff; an approved "
             "cold-path run sets COS_TIER2_APPROVED=1. (INSTRUCTIONS.md §9)"
         )
-
-    rel = path.split("/instance/")[-1] if "/instance/" in path else path
 
     # --- Provenance: entity files must declare a valid origin ---
     if any(d in path for d in ENTITY_DIRS) and path.endswith(".md"):
@@ -105,7 +109,6 @@ def main() -> int:
 
     # --- Link validity: WARN only (a link may resolve on a later write) ---
     if text:
-        memory_root = Path(path[: path.index("/instance/memory/") + len("/instance/memory")])
         if memory_root.is_dir():
             stems = {p.stem.lower() for p in memory_root.rglob("*.md")}
             unresolved = sorted({

@@ -74,8 +74,9 @@ def frontmatter_eq(instance, spec):
         return False, f"{spec['path']} MISSING"
     meta, _ = frontmatter.parse(path)
     val = meta.get(spec["key"])
-    ok = str(val).strip() == str(spec["value"]).strip()
-    return ok, f"{spec['path']}:{spec['key']} = {val!r} (want {spec['value']!r})"
+    want = spec["value"]
+    ok = (val == want) or (val is not None and str(val).strip() == str(want).strip())
+    return ok, f"{spec['path']}:{spec['key']} = {val!r} (want {want!r})"
 
 
 def has_origin(instance, spec):
@@ -98,9 +99,9 @@ def superseded(instance, spec):
         return False, f"{spec['path']} MISSING"
     low = text.lower()
     missing = []
-    if spec["new"].lower() not in low:
+    if str(spec["new"]).lower() not in low:
         missing.append("new value")
-    if spec["old"].lower() not in low:
+    if str(spec["old"]).lower() not in low:
         missing.append("old value")
     if "valid_until" not in low:
         missing.append("valid_until stamp")
