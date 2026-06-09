@@ -27,7 +27,7 @@ Two design rules, both from prior art:
 |---|---|---|
 | **In-loop** | `hooks/provenance_check.py` — PostToolUse guard validating provenance + links at write time (BLOCK/WARN) | **built** |
 | **Structural** | `run_scenario.py` / `run_all.py` — deterministic assertions over an instance dir | **built** |
-| **Content** | `judge:` assertions for semantic checks (LLM-as-judge) | declared, runner skips (roadmap) |
+| **Content** | `judge:` assertions for semantic checks (LLM-as-judge), run by a manual Claude Code session on your **subscription** — never the API, never CI | **built** (see `JUDGING.md`) |
 
 ## Run it
 
@@ -90,10 +90,25 @@ Wire it by copying the block in `hooks/settings.example.json` into your instance
 make the core/ ban *preventive*, pair it with the PreToolUse deny in
 `engine/docs/write-isolation-config.md`.
 
+## Content / judge phase
+
+The semantic checks (`judge:` items in `expected.yaml`) are run **manually inside a
+Claude Code session** — the agent in the session is the judge, so it uses your
+subscription, not API tokens, and never runs in CI. `run_scenario.py --emit-judge`
+deterministically prepares the worklist (resolves rubrics + reads artifacts); it has
+no code path that calls a model, which is what keeps CI structural-by-construction.
+Full procedure: **`JUDGING.md`**.
+
+```bash
+python3 engine/eval/run_scenario.py 01-write-back-loop --emit-judge   # prep worklist
+# then, in Claude Code: "Run the eval judge on 01-write-back-loop"
+```
+
+Add `runs:`/`threshold:` to a `judge:` item to request sampled judging with a
+pass-rate bar (pm-brain convention: structural 1.0, content ≥0.8).
+
 ## Roadmap
 
-- **Content phase:** a `--judge` mode that runs `judge:` assertions via the model with
-  tight rubrics and a pass threshold across N runs (pm-brain: structural 1.0, content ≥0.8).
 - **Agent driver:** an optional orchestrator that runs the agent through `turns/` to
   produce a real instance dir, then grades it with `--instance` (needs the live runtime;
   the structural layer here grades whatever output you point it at).

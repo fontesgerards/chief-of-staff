@@ -56,3 +56,6 @@ final:
         general rule covering recap, coaching, and agenda preamble — restated,
         not copy-pasted from the three correction deltas?
       expect: pass
+      inputs: [queue/review/daily-brief-2026-06-05.md]
+      runs: 3
+      threshold: 0.67
