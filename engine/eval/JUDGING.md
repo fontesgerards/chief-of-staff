@@ -43,13 +43,10 @@ The agent then follows this procedure:
    - Decide **pass / fail** with a one-line reason grounded in the text.
    - If the task lists `runs:`/`threshold:`, judge that many times independently
      and report the pass rate; pass if rate ≥ threshold. Otherwise one reasoned verdict.
-4. **Write a report** and print a combined scorecard (structural + judge):
-   ```
-   engine/eval/scenarios/<scenario>/judge-report-<YYYY-MM-DD>.md
-   ```
-   Report contents per task: verdict, pass-rate (if sampled), the one-line reason,
-   and the rubric it answered. Committing the report is optional — it's a record of
-   a judged run, not a fixture.
+4. **Report inline.** Print the verdicts in the session — do **not** write a report
+   file (a judge run is an advisory signal, not a fixture). For each task report:
+   verdict, pass-rate (if sampled), and a one-line reason grounded in the artifact.
+   End with a combined scorecard (structural from step 1 + judge verdicts).
 
 ## Guardrails
 
