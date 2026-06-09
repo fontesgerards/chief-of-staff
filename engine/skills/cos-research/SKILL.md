@@ -1,7 +1,7 @@
 ---
 name: cos-research
 description: Weekly competitor / technology / market research digest — gathers signals on your watch list, updates competitor entities with sourced facts, and leads with the so-what.
-cadence: weekly           # config.md schedules.research (wed)
+cadence: weekly           # config.md schedules.research (mon)
 kind: ritual
 mutates: true             # hot-path: APPENDS to semantic/ (Tier 0); never edits/supersedes — that's the cold path
 ---
