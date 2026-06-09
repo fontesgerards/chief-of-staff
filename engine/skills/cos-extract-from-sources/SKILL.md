@@ -2,6 +2,7 @@
 name: cos-extract-from-sources
 description: Internal read-only extractor — stages facts from email/docs/transcripts/calendar/web without writing memory. Runs as a separate isolated pass; consumed by other skills. Not invoked directly.
 user-invocable: false
+cadence: daily             # config.md schedules.extract-from-sources — isolated pass at 17:30, restricted profile, BEFORE consumers
 kind: read-only            # CANNOT write memory — only staging
 mutates: false
 writes_to: staging-only    # instance/log/runs/<run>.md + instance/memory/sources/ summaries

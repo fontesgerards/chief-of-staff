@@ -3,6 +3,7 @@ name: cos-meeting-prep
 description: Prepare you for upcoming meetings — pull context on attendees and accounts, surface open loops and commitments, and suggest an agenda. Runs daily; invoke anytime before a call.
 cadence: daily            # config.md schedules.meeting-prep
 kind: ritual
+mutates: false            # reads memory + delivers a brief to state/briefs/; writes no memory
 ---
 
 # meeting-prep — prepare the principal for what's ahead
