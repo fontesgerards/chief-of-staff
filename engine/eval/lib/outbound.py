@@ -21,6 +21,7 @@ import fnmatch
 import hashlib
 import json
 import re
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -30,7 +31,9 @@ except ImportError:  # pragma: no cover - exercised only in standalone hook invo
     import frontmatter  # type: ignore
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-_ACTION_FENCE = re.compile(r"```json\s*\n(.*?)\n```", re.DOTALL)
+# Tolerate fence casing / spacing variation a hand- or LLM-edited proposal may carry
+# (```JSON, ``` json) — a mismatch here fail-closes a legitimate approved action.
+_ACTION_FENCE = re.compile(r"```[ \t]*json[ \t]*\n(.*?)\n```", re.DOTALL | re.IGNORECASE)
 # `## Autonomy` section, then the first ```yaml block, then `level: <value>`.
 _AUTONOMY = re.compile(r"##\s*Autonomy\b.*?```ya?ml\s*\n(.*?)\n```", re.DOTALL | re.IGNORECASE)
 _LEVEL = re.compile(r"^\s*level:\s*([^\s#]+)", re.MULTILINE)
@@ -60,7 +63,7 @@ def _as_utc_iso(s: str):
     raw = s.strip()
     if not raw:
         return None
-    candidate = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+    candidate = raw[:-1] + "+00:00" if raw[-1:].upper() == "Z" else raw  # accept lowercase 'z' too
     try:
         dt = datetime.fromisoformat(candidate)
     except ValueError:
@@ -103,7 +106,7 @@ def read_autonomy_level(config_md_path: Path):
     if not block:
         return None
     m = _LEVEL.search(block.group(1))
-    return m.group(1).strip() if m else None
+    return m.group(1).strip().strip("'\"") if m else None  # tolerate a quoted yaml value
 
 
 # --- Outward classification (KTD8) ------------------------------------------
@@ -166,8 +169,8 @@ def find_approved_match(queue_dir: Path, tool_name: str, call_digest: str):
     for f in files:
         try:
             meta, body = frontmatter.parse(f)
-        except OSError as e:
-            raise GateError(f"cannot read proposal {f}: {e}") from e
+        except Exception as e:  # OSError, or any parse error (malformed YAML, bad encoding)
+            raise GateError(f"cannot read/parse proposal {f}: {e}") from e
         if meta.get("status") != "approved":
             continue
         if meta.get("tool") != tool_name:
@@ -203,7 +206,10 @@ def mark_sent(proposal_path: Path) -> None:
         text = p.read_text(encoding="utf-8-sig")
     except OSError as e:
         raise GateError(f"cannot read proposal to mark sent ({p}): {e}") from e
-    new = re.sub(r"(?m)^(status:\s*)approved\b", r"\1sent", text, count=1)
+    # Tolerate a quoted value (status: "approved") — frontmatter.parse reads it
+    # unquoted for matching, so a raw-text regex must too, or mark_sent fail-closes
+    # a call the matcher already approved. The backref keeps the same quote style.
+    new = re.sub(r"(?m)^(status:\s*)(['\"]?)approved\2", r"\1\2sent\2", text, count=1)
     if new == text:
         raise GateError(f"could not flip status approved->sent in {p}")
     try:
@@ -233,17 +239,31 @@ def mint_token(queue_dir: Path, proposal_id: str, args_digest: str) -> Path:
 
 def consume_token(queue_dir: Path, proposal_id: str, args_digest: str) -> bool:
     """Verify a single-use token matches the digest, delete it, and return True.
-    Missing, mismatched, or unreadable token -> False (caller denies). Deleting
-    before returning makes a second identical send impossible (R3)."""
+    Missing, mismatched, or unreadable token -> False (caller denies).
+
+    Atomic claim (R3 under concurrency): rename the token to a unique name first.
+    `rename` is atomic on a POSIX filesystem, so if two processes race for the same
+    irreversible token only one rename succeeds — the other gets OSError and denies,
+    making a double send impossible. A digest *mismatch* restores the token so the
+    correct call can still consume it (no DoS on an approved action)."""
     p = token_path(queue_dir, proposal_id)
+    claim = p.with_name(f"{p.name}.claim-{uuid.uuid4().hex}")
     try:
-        stored = p.read_text(encoding="utf-8").strip()
+        p.rename(claim)  # atomic — only one concurrent caller wins the token
     except OSError:
         return False
+    try:
+        stored = claim.read_text(encoding="utf-8").strip()
+    except OSError:
+        return False  # claimed but unreadable -> deny (token is gone, fail-safe)
     if stored != args_digest:
+        try:
+            claim.rename(p)  # not our digest — put it back
+        except OSError:
+            pass
         return False
     try:
-        p.unlink()
+        claim.unlink()
     except OSError:
         return False
     return True

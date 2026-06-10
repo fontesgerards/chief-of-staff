@@ -28,8 +28,9 @@ def test_equivalent_timestamps_same_digest():
     a = {"start": "2026-06-10T12:00:00+00:00"}
     b = {"start": "2026-06-10T08:00:00-04:00"}
     assert outbound.digest(a) == outbound.digest(b)
-    # And the trailing-Z form too.
+    # And the trailing-Z form too — both upper and lower case (PR review).
     assert outbound.digest(a) == outbound.digest({"start": "2026-06-10T12:00:00Z"})
+    assert outbound.digest(a) == outbound.digest({"start": "2026-06-10T12:00:00z"})
 
 
 def test_naive_timestamp_left_alone():
@@ -196,6 +197,13 @@ def test_no_level_returns_none(tmp_path):
     assert outbound.read_autonomy_level(p) is None
 
 
+def test_quoted_level_is_unquoted(tmp_path):
+    # PR review: a quoted yaml value must not capture the quotes (would miss the permissive set).
+    p = tmp_path / "config.md"
+    p.write_text(_config_md('"act-on-reversible"'), encoding="utf-8")
+    assert outbound.read_autonomy_level(p) == "act-on-reversible"
+
+
 # --- tokens (U4 / R3) -------------------------------------------------------
 
 def test_token_mint_consume_once(tmp_path):
@@ -240,3 +248,31 @@ def test_mark_sent_raises_when_not_approved(tmp_path):
 def test_mark_sent_raises_on_missing_file(tmp_path):
     with pytest.raises(GateError):
         outbound.mark_sent(tmp_path / "nope.md")
+
+
+def test_mark_sent_handles_quoted_status(tmp_path):
+    # PR review: status: "approved" must still flip (frontmatter reads it unquoted).
+    args = {"summary": "Sync"}
+    content = _proposal(args).replace("status: approved", 'status: "approved"')
+    _write_proposal(tmp_path, "p1.md", content)
+    f = tmp_path / "outbound" / "p1.md"
+    outbound.mark_sent(f)
+    assert 'status: "sent"' in f.read_text(encoding="utf-8")
+
+
+def test_action_block_uppercase_fence_parses(tmp_path):
+    # PR review: ```JSON / ``` json variants must still match.
+    args = {"summary": "Sync"}
+    content = _proposal(args).replace("```json", "``` JSON")
+    _write_proposal(tmp_path, "p1.md", content)
+    assert outbound.find_approved_match(tmp_path, TOOL, outbound.digest(args)) is not None
+
+
+def test_malformed_proposal_raises_gateerror(tmp_path):
+    # PR review: a non-OSError parse failure must surface as GateError (fail-closed),
+    # not an uncaught crash. A NUL byte makes utf-8-sig decoding raise.
+    outbox = tmp_path / "outbound"
+    outbox.mkdir(parents=True)
+    (outbox / "bad.md").write_bytes(b"\xff\xfe not valid utf8 \x00")
+    with pytest.raises(GateError):
+        outbound.find_approved_match(tmp_path, TOOL, "deadbeef")
