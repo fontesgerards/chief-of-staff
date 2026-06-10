@@ -78,3 +78,29 @@ From inside a restricted extractor run, attempt `echo x > instance/memory/test.m
 - Writing `instance/memory/sources/probe.md` and `instance/log/runs/probe.md` **succeeds** (the carve-outs work).
 - The same write from the *normal* (cold-path) profile **succeeds** — proving isolation is per-run, not global.
 - **Web two-step:** the network-on fetch step writes only under `instance/memory/sources/web/`; the network-off extractor stages from those files — neither step writes canonical `instance/memory/`.
+
+## Outward enforcement — the gate as layer 2 (propose-never-act made structural)
+
+> The sections above isolate **inward** writes (memory). This one isolates **outward** actions (`INSTRUCTIONS.md` §1) — send/post/schedule/mutate-external. Same creed (`write-back.md` §8.2: "you can't scan your way out"): the enforced invariant is *no outward action without a payload-matched approved proposal*, applied by the strongest mechanism each surface offers. **The principle is portable; the PreToolUse hook is not.**
+
+Three layers, and you want all three — the gate alone is necessary, not sufficient (it watches MCP tool names, not `Bash` egress like `curl`/`osascript`):
+
+| Layer | Mechanism | CLI | Cowork | Codex |
+|---|---|---|---|---|
+| **1. Read-only OAuth scopes** | provider-enforced (the agent never holds the write capability) | ✅ | ✅ **primary posture** | ✅ |
+| **2. Per-proposal payload-bound gate** | `PreToolUse` hook (`engine/eval/hooks/outbound_gate.py`) | ✅ full | ⚠️ likely, **unverified (2026-06)** | ❌ no hook → approval-policy |
+| **3. Bash-egress deny** | OS sandbox network/exec (Seatbelt/bubblewrap) | ✅ | ⚠️ unverified | ✅ `network.enabled=false` |
+
+### Claude Code (the reference implementation)
+Wire the gate via `.claude/settings.json` (the `PreToolUse` block in `engine/eval/hooks/settings.example.json`): matcher `mcp__.*` invokes `outbound_gate.py`, which classifies outward-vs-read from `outbound_gate.config.json`, reads the autonomy dial from `instance/config.md`, and denies (`exit 2`) anything that isn't a payload-matched approved proposal at a permissive dial. **Fail-closed** — unreadable config/queue/dial denies. `cos-onboarding` writes this by default (Step 7).
+
+### Cowork
+Connectors are wired from the plugin's Connectors tab, and the read-only/write choice is made at the **OAuth consent screen** — so **layer 1 carries the weight**: connect read-only and the agent *cannot* mutate, hook or no hook. The gate hook may also fire (same engine) but is **unverified as of 2026-06**; do not depend on it. Guidance: keep outward connectors read-only on Cowork; the principal executes approved sends.
+
+### Codex
+No pre-tool hook, so automated payload-bound matching isn't reachable the same way. Enforce with a **restricted acting permissions-profile** (parallels the extractor profile above) that either omits the mutating MCP server or uses Codex's **approval policy** for per-tool human approval; Codex **fails closed** (refuses to run if it can't enforce). What you get is *read-only scopes + human approval* — a **coarser** gate than the CLI's (it confirms a human approved the call, not that the payload equals the approved one).
+
+> **Verify-at-build (KTD-7):** does Codex expose any pre-tool-call **script** hook? If yes, port `outbound_gate.py` to it for true payload-bound matching. If no, Codex enforcement stays read-only-scopes + approval-policy, and that limit must be stated honestly — **payload-bound matching is a Claude Code capability, not a cross-platform guarantee.**
+
+### Verification (outward gate)
+With a write scope granted on Claude Code, a direct `create_event` call with **no matching approved proposal** must fail with a **hook block (`exit 2`)**, not the agent saying "I should propose instead." A call whose canonicalized args match an `approved` proposal's `args_digest` is allowed; editing the proposal breaks the match; an irreversible action cannot execute twice (token consumed); unreadable config/queue denies. Executable coverage: `python3 -m pytest engine/eval` (`hooks/test_outbound_gate.py`, `lib/test_outbound.py`); contract map in `engine/eval/scenarios/02-outbound-gate/README.md`.

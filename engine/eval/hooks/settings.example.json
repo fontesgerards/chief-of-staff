@@ -1,7 +1,19 @@
 {
-  "//": "Copy the hooks block into your instance's .claude/settings.json to enable the provenance guard. $CLAUDE_PROJECT_DIR resolves to the working folder that holds instance/.",
-  "//pretooluse": "Optional companion: a PreToolUse deny makes the core/ write-ban PREVENTIVE (the PostToolUse hook below is corrective). See engine/docs/write-isolation-config.md.",
+  "//": "Copy the hooks block into your instance's .claude/settings.json. $CLAUDE_PROJECT_DIR resolves to the working folder that holds instance/. cos-onboarding writes the PreToolUse outbound-gate block by default (it is the structural half of propose-never-act); the PostToolUse provenance guard is its inward counterpart.",
+  "//pretooluse-gate": "PreToolUse outbound-gate (INSTRUCTIONS.md §1): denies any outward MCP call (exit 2) that is not a payload-matched approved proposal at a permissive autonomy dial. Fail-closed. matcher mcp__.* scopes it to connector calls; the hook itself classifies outward-vs-read via outbound_gate.config.json. Necessary, not sufficient — pair with read-only OAuth scopes + sandbox egress deny (engine/docs/write-isolation-config.md).",
+  "//pretooluse-core": "Optional companion: a PreToolUse deny makes the core/ write-ban PREVENTIVE (the PostToolUse provenance hook is corrective). See engine/docs/write-isolation-config.md.",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/engine/eval/hooks/outbound_gate.py\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
