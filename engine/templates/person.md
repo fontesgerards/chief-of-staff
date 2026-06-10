@@ -8,6 +8,8 @@ origin: observed          # observed | confirmed | inferred | imported
 sources: []               # backlinks into memory/sources/
 role:                     # their role / title
 org:                      # [[account]] they belong to
+last_enriched:            # YYYY-MM-DD of the last web-enrichment pass — distinct from last_touched (which any mention bumps). Blank = never enriched. Drives the staleness gate in cos-entity-enrichment.
+enrich:                   # blank/true = eligible for web enrichment; false = opt out (never web-searched)
 ---
 
 # {{Name}}

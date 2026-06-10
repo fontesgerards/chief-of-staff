@@ -79,6 +79,19 @@ queue:
   retain_resolved_days: 14   # approved/rejected proposals move to log/ or are deleted after this window
 ```
 
+## Person enrichment
+```yaml
+# Web enrichment of person records, run inside the daily entity-enrichment pass
+# (engine/skills/cos-entity-enrichment/SKILL.md). Captures job/role/org changes only.
+person_enrichment:
+  enabled: true              # DEFAULT-OFF where extractor isolation is not OS-verified (datamark-only
+                             # fallback, e.g. Cowork): set false unless the principal opts in, and record the
+                             # weaker-guarantee note. Safe to leave true on CLI/Codex with verified isolation.
+  stale_after_days: 90       # re-enrich a touched person only if last_enriched is absent or older than this
+  max_fetches_per_run: 10    # per-run cap; overflow defers to the next run, oldest-last_enriched-first
+  opt_out: []                # person slugs never web-searched (also honored via `enrich: false` on the record)
+```
+
 ## Loop tuning (v1-of-one)
 ```yaml
 write_back:
