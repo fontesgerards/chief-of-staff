@@ -1,0 +1,25 @@
+{
+  "//": "Config for the outward-action gate (engine/eval/hooks/outbound_gate.py). KTD8: the outward tool set is data, not code — add a connector's mutating tools here, no code change. VERIFY-AT-BUILD (connectors.md KTD-7): confirm exact MCP tool names against the installed connector versions; a missing pattern silently un-gates a tool, so the gate fails closed if THIS file is unreadable/malformed.",
+  "//outward": "Mutating / communicating verbs only. Read verbs (list_/get_/search_/read_) are intentionally absent so they pass untouched (R6). Labels and Gmail create_draft are treated INWARD (private, reversible, not sent) and deliberately left ungated.",
+  "outward_tool_patterns": [
+    "mcp__*__create_event",
+    "mcp__*__update_event",
+    "mcp__*__delete_event",
+    "mcp__*__respond_to_event",
+    "mcp__*__*send*",
+    "mcp__*__*post*",
+    "mcp__*__create_shared_link",
+    "mcp__*__create_file_request",
+    "mcp__*__create_file",
+    "mcp__*__create_folder",
+    "mcp__*__move",
+    "mcp__*__copy",
+    "mcp__*__delete",
+    "mcp__*__deploy*"
+  ],
+  "//levels": "Autonomy levels (config.md autonomy.level) at which the gate will execute a matched approved proposal. propose-only (default) and any unrecognized value DENY — the agent never acts outward; the principal sends. See INSTRUCTIONS.md §8.",
+  "permissive_autonomy_levels": [
+    "act-on-reversible",
+    "act-ask-on-risky"
+  ]
+}

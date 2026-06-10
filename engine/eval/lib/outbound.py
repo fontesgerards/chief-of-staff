@@ -31,6 +31,9 @@ except ImportError:  # pragma: no cover - exercised only in standalone hook invo
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _ACTION_FENCE = re.compile(r"```json\s*\n(.*?)\n```", re.DOTALL)
+# `## Autonomy` section, then the first ```yaml block, then `level: <value>`.
+_AUTONOMY = re.compile(r"##\s*Autonomy\b.*?```ya?ml\s*\n(.*?)\n```", re.DOTALL | re.IGNORECASE)
+_LEVEL = re.compile(r"^\s*level:\s*([^\s#]+)", re.MULTILINE)
 
 
 class GateError(Exception):
@@ -84,6 +87,23 @@ def canonicalize(args: dict) -> str:
 def digest(args: dict) -> str:
     """SHA-256 hex of the canonicalized args. The gate's matching key."""
     return hashlib.sha256(canonicalize(args).encode("utf-8")).hexdigest()
+
+
+# --- Autonomy dial (KTD5) ---------------------------------------------------
+
+def read_autonomy_level(config_md_path: Path):
+    """Return the `autonomy.level` string from instance/config.md, or None if the
+    file exists but no level is found. Raises GateError if the file can't be read,
+    so the caller fails closed rather than treating a missing dial as permissive."""
+    try:
+        text = Path(config_md_path).read_text(encoding="utf-8-sig")
+    except OSError as e:
+        raise GateError(f"cannot read config {config_md_path}: {e}") from e
+    block = _AUTONOMY.search(text)
+    if not block:
+        return None
+    m = _LEVEL.search(block.group(1))
+    return m.group(1).strip() if m else None
 
 
 # --- Outward classification (KTD8) ------------------------------------------

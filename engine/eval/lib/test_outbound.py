@@ -148,6 +148,54 @@ def test_missing_action_block_raises(tmp_path):
         outbound.find_approved_match(tmp_path, TOOL, outbound.digest(args))
 
 
+# --- read_autonomy_level (KTD5) ---------------------------------------------
+
+def _config_md(level):
+    return textwrap.dedent(f"""\
+        ---
+        type: config
+        ---
+
+        # config.md
+
+        ## Autonomy
+        ```yaml
+        autonomy:
+          level: {level}        # propose-only | act-on-reversible | act-ask-on-risky
+          auto_allowed: []
+        ```
+
+        ## Connectors
+        ```yaml
+        connectors:
+          level: not-this-one
+        ```
+        """)
+
+
+def test_reads_autonomy_level(tmp_path):
+    p = tmp_path / "config.md"
+    p.write_text(_config_md("act-on-reversible"), encoding="utf-8")
+    assert outbound.read_autonomy_level(p) == "act-on-reversible"
+
+
+def test_autonomy_level_picks_autonomy_block_not_connectors(tmp_path):
+    p = tmp_path / "config.md"
+    p.write_text(_config_md("propose-only"), encoding="utf-8")
+    assert outbound.read_autonomy_level(p) == "propose-only"
+
+
+def test_missing_config_raises(tmp_path):
+    with pytest.raises(GateError):
+        outbound.read_autonomy_level(tmp_path / "nope.md")
+
+
+def test_no_level_returns_none(tmp_path):
+    p = tmp_path / "config.md"
+    p.write_text("# config\n\nno autonomy here\n", encoding="utf-8")
+    assert outbound.read_autonomy_level(p) is None
+
+
 # --- tokens (U4 / R3) -------------------------------------------------------
 
 def test_token_mint_consume_once(tmp_path):
