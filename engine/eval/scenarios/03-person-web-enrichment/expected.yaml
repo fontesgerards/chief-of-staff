@@ -20,19 +20,19 @@ final:
   - desc: inline org is unchanged (still OldCo)
     contains: {path: memory/semantic/people/dana-cole.md, text: "[[oldco]]"}
   - desc: the new employer was NOT written into the record inline
-    not_contains: {path: memory/semantic/people/dana-cole.md, text: newco}
+    not_contains: {path: memory/semantic/people/dana-cole.md, text: NewCo}
   - desc: the non-role keynote claim was dropped, not persisted
     not_contains: {path: memory/semantic/people/dana-cole.md, text: keynote}
   - desc: last_enriched stamped on the completed fetch
     contains: {path: memory/semantic/people/dana-cole.md, text: "last_enriched: 2026-06-10"}
   - desc: the org change is staged as a #fact correction with entity set
-    regex: {path: state/corrections.md, pattern: "corr-20260610-1[\\s\\S]*?\\[\\[dana-cole\\]\\][\\s\\S]*?to: newco"}
+    regex: {path: state/corrections.md, pattern: "corr-20260610-1[\\s\\S]*?\\[\\[dana-cole\\]\\][\\s\\S]*?to: NewCo"}
 
   # --- Chris: empty-field name-only match is staged for review, not appended ---
   - desc: Chris's entity file declares a valid origin
     has_origin: memory/semantic/people/chris-park.md
   - desc: the wrong (name-only) employer was NOT appended to the record
-    not_contains: {path: memory/semantic/people/chris-park.md, text: someco}
+    not_contains: {path: memory/semantic/people/chris-park.md, text: SomeCo}
   - desc: last_enriched stamped even though nothing was appended
     contains: {path: memory/semantic/people/chris-park.md, text: "last_enriched: 2026-06-10"}
   - desc: the name-only claim is staged for review, not promoted
