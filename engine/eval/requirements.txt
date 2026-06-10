@@ -1,3 +1,5 @@
-# Dev-only dependency for the eval harness. The harness degrades gracefully
-# without it for frontmatter parsing, but expected.yaml parsing needs it.
+# Dev-only dependencies for the eval harness. The harness degrades gracefully
+# without PyYAML for frontmatter parsing, but expected.yaml parsing needs it.
 PyYAML>=6.0
+# pytest runs the unit/integration suites (outward-action gate: lib + hook).
+pytest>=7.0

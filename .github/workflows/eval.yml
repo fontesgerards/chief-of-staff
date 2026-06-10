@@ -27,3 +27,6 @@ jobs:
 
       - name: Run structural eval (all scenarios)
         run: python3 engine/eval/run_all.py
+
+      - name: Run unit + integration tests (outward-action gate, lib)
+        run: python3 -m pytest engine/eval -q
