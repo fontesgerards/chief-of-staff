@@ -10,13 +10,22 @@ PreToolUse, not PostToolUse — outward sends are often irreversible, so the cal
 must be blocked BEFORE it runs. exit 2 = DENY (stderr surfaced to the model so it
 self-corrects into writing a proposal); exit 0 = ALLOW.
 
+FAIL-CLOSED ON CRASH: Claude Code only blocks on exit 2 — any other exit code
+(including the 1 Python uses for an uncaught exception or a failed import) lets
+the call PROCEED. So the entry point wraps everything: any exception, including a
+failed `from lib import outbound`, is converted to a deny (exit 2). The lib import
+lives inside main() for exactly this reason.
+
 Wire via .claude/settings.json with matcher "mcp__.*" (see settings.example.json).
 Resolves the instance from $CLAUDE_PROJECT_DIR (the working folder holding
 instance/). Fail-closed: any unreadable config/queue/dial, or any ambiguity on an
-outward call, denies.
+outward call, denies. The gate config (outward denylist + permissive levels) lives
+beside this file in outbound_gate.config.json (KTD8).
 
-The gate config (outward tool denylist + permissive levels) lives beside this
-file in outbound_gate.config.json (KTD8).
+Coverage limit (by design): the gate sees MCP tool names only. Bash egress
+(curl/osascript) and non-MCP tools are out of scope here — closed by the OS
+sandbox (layer 3) and read-only OAuth scopes (layer 1). See
+engine/docs/write-isolation-config.md.
 """
 from __future__ import annotations
 
@@ -24,10 +33,6 @@ import json
 import os
 import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # engine/eval -> `from lib import ...`
-from lib import outbound  # noqa: E402
-from lib.outbound import GateError  # noqa: E402
 
 CONFIG = Path(__file__).resolve().parent / "outbound_gate.config.json"
 PROPOSE_HINT = (
@@ -46,10 +51,6 @@ def _payload() -> dict:
         return {}
 
 
-def _allow() -> None:
-    sys.exit(0)
-
-
 def _deny(msg: str) -> None:
     print(f"[outbound-gate DENY] {msg}", file=sys.stderr)
     sys.exit(2)
@@ -65,6 +66,12 @@ def _instance_dir() -> Path:
 
 
 def main() -> int:
+    # Import the lib HERE (not at module top) so an import failure is caught by the
+    # entry guard and fails closed — a top-level import error would exit 1 = ALLOW.
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # engine/eval -> `from lib import ...`
+    from lib import outbound
+    GateError = outbound.GateError
+
     data = _payload()
     tool_name = data.get("tool_name")
     if not tool_name:  # nothing to classify (manual/empty invocation) — let it through
@@ -117,8 +124,24 @@ def main() -> int:
                 "(already executed, or approval did not mint one). Re-approve to mint a fresh token."
             )
 
+    # --- consume the approval so it can't authorize a second call (R2) ---
+    try:
+        outbound.mark_sent(match.path)
+    except GateError as e:
+        _deny(f"{e} — refusing to allow an unbounded replay of approval '{match.id}'.")
+
     return 0  # all gates passed — allow the call
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # Fail-closed boundary: a real deny raises SystemExit(2) and must propagate; any
+    # OTHER exception (crash, import failure, bad payload shape) is converted to a
+    # deny so the gate never fails open. A crash therefore blocks MCP calls loudly
+    # (the matcher scopes this to mcp__.*; Bash/Write are unaffected).
+    try:
+        raise SystemExit(main())
+    except SystemExit:
+        raise
+    except BaseException as e:  # noqa: BLE001 - intentional catch-all to fail closed
+        print(f"[outbound-gate DENY] gate crashed ({e!r}); refusing the call fail-closed.", file=sys.stderr)
+        raise SystemExit(2)

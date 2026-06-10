@@ -5,7 +5,7 @@ import textwrap
 
 import pytest
 
-from lib import outbound
+from lib import frontmatter, outbound
 from lib.outbound import GateError
 
 
@@ -215,3 +215,28 @@ def test_token_digest_mismatch_not_consumed(tmp_path):
 
 def test_missing_token_not_consumed(tmp_path):
     assert outbound.consume_token(tmp_path, "nope", "aaa") is False
+
+
+# --- mark_sent (R2 single-use) ----------------------------------------------
+
+def test_mark_sent_flips_status_once(tmp_path):
+    args = {"summary": "Sync"}
+    _write_proposal(tmp_path, "p1.md", _proposal(args))
+    f = tmp_path / "outbound" / "p1.md"
+    outbound.mark_sent(f)
+    meta, _ = frontmatter.parse(f)
+    assert meta["status"] == "sent"
+    # a now-consumed proposal no longer matches
+    assert outbound.find_approved_match(tmp_path, TOOL, outbound.digest(args)) is None
+
+
+def test_mark_sent_raises_when_not_approved(tmp_path):
+    args = {"summary": "Sync"}
+    _write_proposal(tmp_path, "p1.md", _proposal(args, status="pending"))
+    with pytest.raises(GateError):
+        outbound.mark_sent(tmp_path / "outbound" / "p1.md")
+
+
+def test_mark_sent_raises_on_missing_file(tmp_path):
+    with pytest.raises(GateError):
+        outbound.mark_sent(tmp_path / "nope.md")

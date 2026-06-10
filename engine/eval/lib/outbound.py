@@ -110,8 +110,11 @@ def read_autonomy_level(config_md_path: Path):
 
 def is_outward(tool_name: str, patterns) -> bool:
     """True if the tool name matches any glob in the config denylist (mutating verbs).
-    Read verbs (list_/get_/search_) match nothing and pass."""
-    return any(fnmatch.fnmatchcase(tool_name or "", p) for p in (patterns or []))
+    Read verbs (list_/get_/search_) match nothing and pass. Case-insensitive so a
+    connector that names a verb SendMessage/Create_Event can't evade the lowercase
+    denylist."""
+    name = (tool_name or "").lower()
+    return any(fnmatch.fnmatchcase(name, str(p).lower()) for p in (patterns or []))
 
 
 # --- Proposal matching (KTD3) -----------------------------------------------
@@ -183,6 +186,30 @@ def find_approved_match(queue_dir: Path, tool_name: str, call_digest: str):
             status="approved",
         )
     return None
+
+
+# --- Single-use consumption for ALL matched proposals (R2) ------------------
+
+def mark_sent(proposal_path: Path) -> None:
+    """Flip a matched proposal's status `approved` -> `sent` so the same approval
+    cannot authorize a second outward call (R2: one approval = one action — for
+    reversible actions too, not only irreversible). Semantics: the gate authorizes
+    one *attempt*; a send that fails needs re-approval (the safe direction).
+
+    Raises GateError on any failure, so the caller denies rather than allowing an
+    unbounded replay."""
+    p = Path(proposal_path)
+    try:
+        text = p.read_text(encoding="utf-8-sig")
+    except OSError as e:
+        raise GateError(f"cannot read proposal to mark sent ({p}): {e}") from e
+    new = re.sub(r"(?m)^(status:\s*)approved\b", r"\1sent", text, count=1)
+    if new == text:
+        raise GateError(f"could not flip status approved->sent in {p}")
+    try:
+        p.write_text(new, encoding="utf-8")
+    except OSError as e:
+        raise GateError(f"cannot write proposal to mark sent ({p}): {e}") from e
 
 
 # --- Single-use tokens for irreversible actions (U4 / KTD4) -----------------

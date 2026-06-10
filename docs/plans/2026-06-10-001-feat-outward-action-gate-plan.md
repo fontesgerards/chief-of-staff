@@ -240,6 +240,16 @@ Every ambiguous or error branch routes to DENY (R5, fail-closed).
 - **Does Codex expose a pre-tool-call script hook?** (U7 verify-at-build spike.) Determines whether payload-bound matching is reachable on Codex or enforcement stays approval-policy-only.
 - **`create_draft` classification** — inward (a draft isn't sent) vs. gated if the connector auto-sends. Verify the actual connector behavior at build (U5).
 
+### Known limitations surfaced in code review (2026-06-10)
+
+These are real and out of this plan's scope; tracked for follow-up so they aren't mistaken for coverage:
+
+- **Queue integrity is unguarded.** The gate trusts `status: approved` in `queue/outbound/`. Writing such a file is an inward write to `queue/` — guarded by neither this hook nor `provenance_check.py` (which only watches `instance/memory/`). A capable injection that can write files could forge an approved proposal (and, for irreversible, the `.tokens/` file). The gate closes the **direct-tool-call** bypass; queue-write integrity is a separate surface. Follow-up: gate `queue/outbound/` writes, or sign approvals.
+- **Bash / WebFetch egress is not gated.** The hook matcher is `mcp__.*`; `curl`, `osascript`, `gh`, `git push`, and state-changing `WebFetch` bypass a tool-name gate. Closed only by layer 3 (sandbox network/exec deny) + layer 1 (read-only scopes) — restated as required in U6/U7, not implemented here.
+- **Denylist is fail-open by classification.** Any mutating MCP verb not enumerated in `outbound_gate.config.json` passes ungated (the rest of the gate is fail-closed). Mitigated by over-gating + the `test_real_config_breadth` pin; audit per connector at build (KTD-7).
+- **Irreversible token has no automated minter.** Until the approval flow mints `.tokens/<id>` on approval (the open question above), every irreversible proposal is denied (fail-safe). The minting trigger is the remaining piece of the approval flow.
+- **`CLAUDE_PROJECT_DIR` must be set.** If unset, the gate resolves `instance/` against cwd; normally this denies (config unreadable), but a cwd that happens to hold a permissive instance could authorize against the wrong queue. Claude Code sets this; document the assumption.
+
 ---
 
 ## Sources & Research

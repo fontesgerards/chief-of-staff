@@ -90,6 +90,26 @@ def test_matched_reversible_allowed(tmp_path):
     assert rc == 0
 
 
+def test_reversible_replay_denied(tmp_path):
+    # R2: one approval authorizes exactly one action — even a reversible one.
+    inst = _instance(tmp_path, "act-on-reversible")
+    args = {"summary": "Sync"}
+    _approve(inst, args)
+    rc1, _ = _run(_call(args), tmp_path)
+    assert rc1 == 0           # first call consumes the approval (status -> sent)
+    rc2, _ = _run(_call(args), tmp_path)
+    assert rc2 == 2           # identical replay finds no approved proposal
+
+
+def test_act_ask_on_risky_is_permissive(tmp_path):
+    # The second permissive dial advertised in the config must also allow a match.
+    inst = _instance(tmp_path, "act-ask-on-risky")
+    args = {"summary": "Sync"}
+    _approve(inst, args)
+    rc, _ = _run(_call(args), tmp_path)
+    assert rc == 0
+
+
 def test_matched_but_propose_only_denied(tmp_path):
     inst = _instance(tmp_path, "propose-only")
     args = {"summary": "Sync"}
@@ -108,8 +128,9 @@ def test_read_verb_allowed(tmp_path):
 def test_edited_proposal_fails_match(tmp_path):
     inst = _instance(tmp_path, "act-on-reversible")
     _approve(inst, {"summary": "Sync"})
-    rc, _ = _run(_call({"summary": "Sync but tampered"}), tmp_path)
+    rc, err = _run(_call({"summary": "Sync but tampered"}), tmp_path)
     assert rc == 2  # R2
+    assert "no approved proposal matches" in err  # denied for the right reason, not a config error
 
 
 def test_missing_config_denied(tmp_path):
@@ -117,6 +138,7 @@ def test_missing_config_denied(tmp_path):
     # no config.md
     rc, err = _run(_call({"summary": "Sync"}), tmp_path)
     assert rc == 2  # R5 fail-closed
+    assert "autonomy dial" in err  # bound to the dial-read failure, not some other deny
 
 
 def test_irreversible_allowed_once_then_denied(tmp_path):
@@ -135,8 +157,22 @@ def test_irreversible_without_token_denied(tmp_path):
     args = {"to": "ceo@example.com", "body": "wire the funds"}
     _approve(inst, args, reversibility="irreversible", pid="irr-2")
     # no token minted
-    rc, _ = _run(_call(args), tmp_path)
+    rc, err = _run(_call(args), tmp_path)
     assert rc == 2
+    assert "token" in err.lower()  # bound to the token requirement, not a config/match error
+
+
+def test_real_config_breadth():
+    # Pin the shipped denylist + permissive levels so a future edit can't silently
+    # un-gate a tool or make propose-only permissive (the config's own warning).
+    import json as _json
+    cfg = _json.loads((HOOK.parent / "outbound_gate.config.json").read_text(encoding="utf-8"))
+    patterns = cfg["outward_tool_patterns"]
+    assert outbound.is_outward("mcp__claude_ai_Google_Calendar__create_event", patterns)
+    assert outbound.is_outward("mcp__claude_ai_Gmail__send_message", patterns)
+    assert outbound.is_outward("mcp__claude_ai_Google_Drive__copy_file", patterns)
+    assert not outbound.is_outward("mcp__claude_ai_Google_Calendar__list_events", patterns)
+    assert "propose-only" not in cfg["permissive_autonomy_levels"]
 
 
 def test_empty_stdin_allows(tmp_path):

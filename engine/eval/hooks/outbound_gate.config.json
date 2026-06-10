@@ -1,6 +1,6 @@
 {
   "//": "Config for the outward-action gate (engine/eval/hooks/outbound_gate.py). KTD8: the outward tool set is data, not code — add a connector's mutating tools here, no code change. VERIFY-AT-BUILD (connectors.md KTD-7): confirm exact MCP tool names against the installed connector versions; a missing pattern silently un-gates a tool, so the gate fails closed if THIS file is unreadable/malformed.",
-  "//outward": "Mutating / communicating verbs only. Read verbs (list_/get_/search_/read_) are intentionally absent so they pass untouched (R6). Labels and Gmail create_draft are treated INWARD (private, reversible, not sent) and deliberately left ungated.",
+  "//outward": "Mutating / communicating verbs only. Read verbs (list_/get_/search_/read_) are intentionally absent so they pass untouched (R6). Labels and Gmail create_draft are treated INWARD (private, reversible, not sent) and deliberately left ungated. WARNING: a denylist is fail-OPEN by classification — any mutating verb NOT enumerated here passes ungated, unlike the rest of the gate which is fail-closed. Err toward over-gating (over-gating just forces a proposal); audit per connector at build (KTD-7). Matching is case-insensitive.",
   "outward_tool_patterns": [
     "mcp__*__create_event",
     "mcp__*__update_event",
@@ -8,12 +8,15 @@
     "mcp__*__respond_to_event",
     "mcp__*__*send*",
     "mcp__*__*post*",
-    "mcp__*__create_shared_link",
-    "mcp__*__create_file_request",
-    "mcp__*__create_file",
+    "mcp__*__reply*",
+    "mcp__*__*share*",
+    "mcp__*__*reaction*",
+    "mcp__*__edit_*",
+    "mcp__*__create_file*",
     "mcp__*__create_folder",
+    "mcp__*__create_file_request",
+    "mcp__*__*copy*",
     "mcp__*__move",
-    "mcp__*__copy",
     "mcp__*__delete",
     "mcp__*__deploy*"
   ],
