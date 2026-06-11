@@ -26,6 +26,8 @@ Memory writes are **inward** and are made safe a different way — not by approv
 ## 3. Session continuity: read-first / write-last
 
 - **First action of every run:** read `instance/state/current.md` (plus `open-loops.md`, `commitments.md`, `pending-questions.md` as relevant). Do not re-mine the full archive.
+- **Runtime row (per session):** `instance/config.md` carries a body `runtime:` block (one capability row per host, written only by `cos-preflight`). Select the row matching this session's live detect-or-ask host — never inferred from on-disk artifacts, never another host's wiring. Missing row or host mismatch: interactive ⇒ run `cos-preflight` (append/update your own host's row only); non-interactive ⇒ fail closed (read-only floor, enrichment off, no probes, no config writes) and append "preflight needed for host `<X>`" to `log/runs/`. Duplicate rows for one host ⇒ use the newest `last_verified`, queue cleanup as a validation finding.
+- **Schedule liveness (interactive runs):** compare `schedules:` cadences against the most recent `trigger: scheduled` capture entries in `log/runs/` (manual runs don't count — the capture footer carries `trigger:`). An overdue `live` schedule on an expiring runtime (e.g. Cowork tasks expire ~7 days, app-open only) ⇒ surface a re-arm prompt; `config.md` never silently claims `live` for a dead schedule.
 - **Last action of every run:** rewrite `instance/state/current.md` with where things stand, and append the capture footer.
 
 ## 4. Corrections drive learning
