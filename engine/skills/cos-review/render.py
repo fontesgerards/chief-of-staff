@@ -486,11 +486,30 @@ def write(instance_dir, date, *, server_post=None, server_done=None):
     return out
 
 
+def open_in_browser(path):
+    """Open a local file in the default browser (cross-platform via stdlib).
+    Best-effort: returns True on success, False if no browser is reachable
+    (headless / sandboxed runs) — the caller still has the printed path."""
+    import webbrowser
+    try:
+        return webbrowser.open(Path(path).resolve().as_uri())
+    except Exception:
+        return False
+
+
 if __name__ == "__main__":
     import argparse
 
     ap = argparse.ArgumentParser(description="render the decision dashboard")
     ap.add_argument("instance_dir")
     ap.add_argument("date")
+    ap.add_argument("--open", action="store_true", dest="open_after",
+                    help="open the rendered dashboard in the default browser")
     args = ap.parse_args()
-    print(write(args.instance_dir, args.date))
+    out = write(args.instance_dir, args.date)
+    print(out)
+    if args.open_after:
+        if open_in_browser(out):
+            print("opened in browser")
+        else:
+            print("could not auto-open — open the path above")
