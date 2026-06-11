@@ -509,4 +509,7 @@ if __name__ == "__main__":
     out = write(args.instance_dir, args.date)
     print(out)
     if args.open_after:
-        print("opened in browser" if open_in_browser(out) else "could not auto-open — open the path above")
+        if open_in_browser(out):
+            print("opened in browser")
+        else:
+            print("could not auto-open — open the path above")

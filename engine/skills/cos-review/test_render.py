@@ -78,7 +78,8 @@ def test_write_emits_file(tmp_path):
 
 def test_open_in_browser_uses_file_uri(tmp_path, monkeypatch):
     import webbrowser
-    f = tmp_path / "d.html"; f.write_text("<html></html>", encoding="utf-8")
+    f = tmp_path / "d.html"
+    f.write_text("<html></html>", encoding="utf-8")
     calls = []
     monkeypatch.setattr(webbrowser, "open", lambda u: calls.append(u) or True)
     assert render_mod.open_in_browser(f) is True
@@ -87,6 +88,7 @@ def test_open_in_browser_uses_file_uri(tmp_path, monkeypatch):
 
 def test_open_in_browser_swallows_errors(tmp_path, monkeypatch):
     import webbrowser
-    def boom(u): raise RuntimeError("no display")
+    def boom(u):
+        raise RuntimeError("no display")
     monkeypatch.setattr(webbrowser, "open", boom)
     assert render_mod.open_in_browser(tmp_path / "x.html") is False   # best-effort, never raises
