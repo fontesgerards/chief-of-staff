@@ -25,15 +25,34 @@ _CREATED = re.compile(r"^created:(\s*)(.*)$")
 _DATE_KEY = re.compile(r"^date:")
 _COVERS_BARE = re.compile(
     r"^covers:(\s*)(\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2})(\s*(?:#.*)?)$")
-_SCHEMA = re.compile(r"^schema:\s*(\d+)\s*(?:#.*)?$")
+_SCHEMA = re.compile(r"^schema:\s*(\S+)\s*(?:#.*)?$")
 _MIGRATION = re.compile(r"^migration:\s*(\S+)\s*(?:#.*)?$")
-_WATERMARK = re.compile(r"^migration_watermark:\s*(\S+)\s*(?:#.*)?$")
+# Watermark values are paths and may contain spaces — capture to end of line,
+# trimming a trailing ` # comment` and whitespace.
+_WATERMARK = re.compile(r"^migration_watermark:\s*(.*?)\s*(?:#.*)?$")
 # `- <fingerprint> | severity | file | check | detail | first_seen: …`
-_FINDING = re.compile(r"^- [0-9a-f]{8,} \| \S+ \| (\S+) \| (\S+) \|")
+# Columns are ` | `-delimited; file paths may contain spaces, so the file
+# column is anything-but-pipe (trimmed), never `\S+`.
+_FINDING = re.compile(r"^- [0-9a-f]{8,} \| \S+ \| ([^|]+) \| (\S+) \|")
+
+
+def _unquote(token: str) -> str:
+    """Strip surrounding single/double quotes from a scalar token (pyyaml
+    semantics: `"declined"` == `declined`, `"1"` == `1`)."""
+    token = token.strip()
+    if len(token) >= 2 and token[0] == token[-1] and token[0] in ("'", '"'):
+        return token[1:-1]
+    return token
 
 
 def _split_fm(text: str):
-    """Return (lines, fm_start=1, fm_end) or (lines, None, None) when no frontmatter."""
+    """Return (lines, fm_start=1, fm_end) or (lines, None, None) when no frontmatter.
+
+    A leading UTF-8 BOM is stripped first, matching frontmatter.py's utf-8-sig
+    tolerance — a BOM-prefixed legacy file must be transformed, not reported
+    "already done".
+    """
+    text = text.lstrip("\ufeff")
     if not text.startswith("---"):
         return text.split("\n"), None, None
     lines = text.split("\n")
@@ -85,7 +104,7 @@ def migration_worklist(findings_manifest_text: str) -> list[str]:
         m = _FINDING.match(line.strip())
         if not m:
             continue
-        path, check = m.group(1), m.group(2)
+        path, check = m.group(1).strip(), m.group(2)
         if check == "schema_gate":
             continue
         if path not in seen:
@@ -101,7 +120,10 @@ def is_migrated(config_text: str) -> bool:
     for ln in lines[start:end]:
         m = _SCHEMA.match(ln)
         if m:
-            return int(m.group(1)) >= 1
+            value = _unquote(m.group(1))
+            if not value.isdigit():
+                continue  # not a numeric watermark — same as no match
+            return int(value) >= 1
     return False
 
 
@@ -131,9 +153,9 @@ def parse_declined(config_text: str) -> tuple[bool, str | None]:
     for ln in lines[start:end]:
         m = _MIGRATION.match(ln)
         if m:
-            declined = m.group(1).strip().lower() == "declined"
+            declined = _unquote(m.group(1)).lower() == "declined"
         m = _WATERMARK.match(ln)
         if m:
-            v = m.group(1).strip()
+            v = _unquote(m.group(1))
             watermark = None if v.lower() == "none" else v
     return declined, watermark

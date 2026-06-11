@@ -68,13 +68,44 @@ def normalize_mirror(text: str) -> str:
     return text
 
 
+# Directional markers: each tolerated delta belongs to exactly ONE of the two
+# files. `normalize_mirror()` alone is direction-agnostic — it would also bless
+# a pair with the deltas sitting in the WRONG file — so direction is asserted
+# before normalizing. Entries: (file the marker must NOT appear in, literal
+# marker, why). The placeholder markers keep their backticks because the bare
+# path `engine/skills/<name>/SKILL.md` legitimately appears in BOTH files;
+# `/cos-` never appears in AGENTS.md (verified), so absence is asserted outright.
+DIRECTIONAL_MARKERS = [
+    ("CLAUDE.md", "$cos-",
+     "Codex `$cos-` invocation form belongs only in AGENTS.md"),
+    ("CLAUDE.md", "`$<name>`",
+     "Codex `$<name>` placeholder belongs only in AGENTS.md"),
+    ("CLAUDE.md", " by Codex",
+     '"by Codex" phrasing belongs only in AGENTS.md'),
+    ("CLAUDE.md", ", or via the `/skills` menu",
+     "the `/skills` menu mention belongs only in AGENTS.md"),
+    ("AGENTS.md", "/cos-",
+     "Claude `/cos-` invocation form belongs only in CLAUDE.md (use `$cos-`)"),
+    ("AGENTS.md", "`/<name>`",
+     "Claude `/<name>` placeholder belongs only in CLAUDE.md (use `$<name>`)"),
+]
+
+
 def check_root_mirror(root: Path = REPO_ROOT):
-    """Root CLAUDE.md and AGENTS.md are mirrors modulo the tolerated deltas."""
+    """Root CLAUDE.md and AGENTS.md are mirrors modulo the tolerated deltas.
+
+    Two steps: (1) assert each tolerated delta sits in its correct file;
+    (2) normalize both files and require byte equality."""
     paths = [root / "CLAUDE.md", root / "AGENTS.md"]
     for p in paths:
         if not p.is_file():
             return False, f"{p.name} MISSING at repo root"
-    a, b = (normalize_mirror(p.read_text(encoding="utf-8")) for p in paths)
+    texts = {p.name: p.read_text(encoding="utf-8") for p in paths}
+    for fname, marker, why in DIRECTIONAL_MARKERS:
+        for i, line in enumerate(texts[fname].splitlines(), 1):
+            if marker in line:
+                return False, f"{fname} line {i}: contains {marker!r} — {why}"
+    a, b = (normalize_mirror(texts[p.name]) for p in paths)
     if a == b:
         return True, "CLAUDE.md ≡ AGENTS.md (modulo the 3 tolerated deltas)"
     a_lines, b_lines = a.splitlines(), b.splitlines()

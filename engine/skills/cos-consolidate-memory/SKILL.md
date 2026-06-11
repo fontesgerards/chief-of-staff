@@ -29,7 +29,7 @@ mutates: true             # the ONLY skill allowed to edit/delete memory
 
 The weekly `cos-system-maintenance` sweep (`engine/validate_instance.py`) writes `state/validation/findings-<date>.md` but never fixes anything; **this** run is where findings get fixed.
 
-1. Read the **latest** `state/validation/findings-*.md`. Each line carries a stable fingerprint, severity, file, check, detail, and `first_seen:`.
+1. Read the **latest** `state/validation/findings-*.md`. Each line carries a stable fingerprint, severity, file, check, detail, and `first_seen:`. If no manifest exists, or the newest is older than `write_back.decay_weeks`, log "no validation manifest — sweep may be unavailable on this host (see `script_exec` in the runtime row)" in the changelog instead of silently skipping.
 2. **Re-run the finding's deterministic check against the current file first** — the manifest may be days stale and the file may have changed since the sweep. If it no longer reproduces, **skip it and log "resolved before fix"** in the changelog (never "fix" a defect that's already gone).
 3. Tier-classify what still reproduces:
    - **Mechanical frontmatter fixes** (missing/renamed required keys, an `origin` outside the closed enum with an unambiguous correct value, a dangling-wikilink rename) → **Tier 1**: apply + changelog entry.

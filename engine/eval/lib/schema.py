@@ -145,6 +145,7 @@ SWEEP_EXCLUSIONS = [
     "state/*.md",          # the append-only tables (current/commitments/open-loops/
                            #   corrections/pending-questions) carry no frontmatter;
                            #   state/briefs/** IS swept
+    "state/validation/**", # the validator's own findings manifests — machine-written
     "memory/sources/**",   # NEVER read by the sweep — injection boundary; schema is
                            #   enforced at write time by the isolated extractor
     ".claude/**",          # runtime settings, not memory

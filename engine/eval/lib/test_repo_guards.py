@@ -114,6 +114,53 @@ def test_in_line_divergence_reports_line(tmp_path):
     assert "line 3" in detail
 
 
+def test_codex_invocation_form_in_claude_md_fails(tmp_path):
+    """A `$cos-` form in CLAUDE.md survives normalization (it is erased from
+    both sides) — the direction assertion must catch it instead."""
+    root = _make_repo(tmp_path)
+    claude = root / "CLAUDE.md"
+    claude.write_text(claude.read_text(encoding="utf-8")
+                      .replace("Run `/cos-onboarding` first",
+                               "Run `$cos-onboarding` first"), encoding="utf-8")
+    ok, detail = repo_guards.check_root_mirror(root)
+    assert not ok
+    assert "CLAUDE.md" in detail and "$cos-" in detail and "line 4" in detail
+
+
+def test_by_codex_phrase_in_claude_md_fails(tmp_path):
+    root = _make_repo(tmp_path)
+    claude = root / "CLAUDE.md"
+    claude.write_text(claude.read_text(encoding="utf-8")
+                      .replace("Loaded automatically —",
+                               "Loaded automatically by Codex —"), encoding="utf-8")
+    ok, detail = repo_guards.check_root_mirror(root)
+    assert not ok
+    assert "CLAUDE.md" in detail and "by Codex" in detail and "line 3" in detail
+
+
+def test_skills_menu_phrase_in_claude_md_fails(tmp_path):
+    root = _make_repo(tmp_path)
+    claude = root / "CLAUDE.md"
+    claude.write_text(claude.read_text(encoding="utf-8")
+                      .replace("(e.g. `/cos-onboarding`).",
+                               "(e.g. `/cos-onboarding`), or via the `/skills` menu."),
+                      encoding="utf-8")
+    ok, detail = repo_guards.check_root_mirror(root)
+    assert not ok
+    assert "CLAUDE.md" in detail and "/skills" in detail and "line 4" in detail
+
+
+def test_claude_invocation_form_in_agents_md_fails(tmp_path):
+    root = _make_repo(tmp_path)
+    agents = root / "AGENTS.md"
+    agents.write_text(agents.read_text(encoding="utf-8")
+                      .replace("Run `$cos-onboarding` first",
+                               "Run `/cos-onboarding` first"), encoding="utf-8")
+    ok, detail = repo_guards.check_root_mirror(root)
+    assert not ok
+    assert "AGENTS.md" in detail and "/cos-" in detail and "line 4" in detail
+
+
 def test_missing_mirror_file_fails(tmp_path):
     root = _make_repo(tmp_path)
     (root / "AGENTS.md").unlink()

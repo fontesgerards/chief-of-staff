@@ -109,14 +109,50 @@ def test_declined_plus_post_upgrade_write_exactly_two_findings(tmp_path):
     assert vi.exit_code(rep) == 1  # the post-upgrade defect is error-level
 
 
-def test_legacy_without_upgrade_date_does_not_sweep(tmp_path):
+def test_legacy_without_upgrade_date_or_prior_manifest_does_not_sweep(tmp_path):
+    """No --upgrade-date AND no prior findings manifest → gate-only (the first
+    sweep establishes the baseline; today's manifest becomes the watermark)."""
     inst = _copy_golden(tmp_path)
     _strip_schema(inst)
     bad = inst / "memory" / "semantic" / "people" / "new-hire.md"
     bad.write_text("# No frontmatter\n", encoding="utf-8")
-    rep = vi.run_validation(inst)  # no --upgrade-date
+    rep = vi.run_validation(inst)  # no --upgrade-date, no state/validation/
     assert len(rep["findings"]) == 1
     assert "migration pending" in rep["findings"][0]["detail"]
+
+
+def test_legacy_default_watermark_from_earliest_prior_manifest(tmp_path):
+    """Weekly flow (no --upgrade-date): the earliest prior findings manifest is
+    the baseline, so post-baseline writes are swept automatically."""
+    inst = _copy_golden(tmp_path)
+    _strip_schema(inst)
+    _age_all_files(inst, days=30)  # everything predates the baseline
+    baseline = time.strftime("%Y-%m-%d", time.localtime(time.time() - 7 * 86400))
+    val_dir = inst / "state" / "validation"
+    val_dir.mkdir(parents=True)
+    (val_dir / f"findings-{baseline}.md").write_text(
+        f"---\ntype: validation-findings\ndate: {baseline}\nschema_seen: null\n"
+        "---\n\n(no findings)\n", encoding="utf-8")
+    # A stray non-dated file must not poison baseline derivation either.
+    (val_dir / "findings-notes.md").write_text("scratch notes\n", encoding="utf-8")
+    bad = inst / "memory" / "semantic" / "people" / "new-hire.md"
+    bad.write_text("# No frontmatter\n", encoding="utf-8")  # mtime = today > baseline
+    rep = vi.run_validation(inst)  # NO --upgrade-date — watermark is derived
+    assert sorted(f["check"] for f in rep["findings"]) == \
+        ["missing_frontmatter", "schema_gate"], rep["findings"]
+    assert vi.exit_code(rep) == 1
+
+
+def test_same_day_write_as_upgrade_date_is_swept(tmp_path):
+    """Watermark comparison is `>=` — same-day legacy writes are re-flagged."""
+    inst = _copy_golden(tmp_path)
+    _strip_schema(inst)
+    _age_all_files(inst, days=30)
+    bad = inst / "memory" / "semantic" / "people" / "new-hire.md"
+    bad.write_text("# No frontmatter\n", encoding="utf-8")  # mtime = today
+    today = time.strftime("%Y-%m-%d")
+    rep = vi.run_validation(inst, upgrade_date=today)
+    assert any(f["check"] == "missing_frontmatter" for f in rep["findings"]), rep["findings"]
 
 
 # --- origin enum + fingerprints -----------------------------------------------------
@@ -161,7 +197,47 @@ def test_manifest_dedup_carries_first_seen(tmp_path):
     assert meta["schema_seen"] == 1
 
 
+def test_stray_findings_notes_ignored_by_first_seen_carry_forward(tmp_path):
+    """A stray findings-notes.md sorts after the dated manifests but must never
+    be read as the 'previous findings file' (anchored filename filter)."""
+    inst = _copy_golden(tmp_path)
+    person = inst / "memory" / "semantic" / "people" / "andre-maligian.md"
+    person.write_text(
+        person.read_text(encoding="utf-8").replace("origin: confirmed", "origin: vibes"),
+        encoding="utf-8")
+    val_dir = inst / "state" / "validation"
+    rep1 = vi.run_validation(inst)
+    vi.write_manifest(rep1, val_dir / "findings-2026-06-11.md", today="2026-06-11")
+    fp = rep1["findings"][0]["fingerprint"]
+    (val_dir / "findings-notes.md").write_text(
+        "---\ndate: 2020-01-01\n---\n\n"
+        f"- {fp} | error | x | has_origin | poisoned | first_seen: 2020-01-01\n",
+        encoding="utf-8")
+    rep2 = vi.run_validation(inst)
+    out = vi.write_manifest(rep2, val_dir / "findings-2026-06-18.md", today="2026-06-18")
+    line = next(ln for ln in out.read_text(encoding="utf-8").splitlines()
+                if ln.startswith(f"- {fp}"))
+    assert "first_seen: 2026-06-11" in line  # carried from the real prior manifest
+
+
 # --- warn-only checks ------------------------------------------------------------------
+
+def test_typed_file_at_wrong_path_is_warn_exit_zero(tmp_path):
+    """A person-typed file under accounts/ → exactly one warn path-mismatch
+    finding; warns never affect the exit code."""
+    inst = _copy_golden(tmp_path)
+    src = inst / "memory" / "semantic" / "people" / "andre-maligian.md"
+    misplaced = inst / "memory" / "semantic" / "accounts" / "andre-maligian.md"
+    misplaced.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    rep = vi.run_validation(inst)
+    assert len(rep["findings"]) == 1, rep["findings"]
+    f = rep["findings"][0]
+    assert f["severity"] == "warn" and f["check"] == "path_pattern"
+    assert f["file"] == "memory/semantic/accounts/andre-maligian.md"
+    assert "memory/semantic/people/<slug>.md" in f["detail"]
+    assert rep["errors"] == 0
+    assert vi.exit_code(rep) == 0
+
 
 def test_dangling_wikilink_is_warn_exit_zero(tmp_path):
     inst = _copy_golden(tmp_path)
@@ -174,6 +250,22 @@ def test_dangling_wikilink_is_warn_exit_zero(tmp_path):
     assert len(warns) == 1 and warns[0]["check"] == "valid_links"
     assert "ghost-entity" in warns[0]["detail"]
     assert vi.exit_code(rep) == 0  # warnings never affect the exit code
+
+
+# --- can't-run paths → exit code 2 -------------------------------------------------------
+
+def test_nonexistent_instance_is_error_mode_exit_2():
+    rep = vi.run_validation(Path("/nonexistent"))
+    assert rep["mode"] == "error"
+    assert "not found" in rep["error"]
+    assert rep["findings"] == []
+    assert vi.exit_code(rep) == 2
+
+
+def test_invalid_upgrade_date_via_main_exits_2(capsys):
+    rc = vi.main(["--instance", str(GOLDEN), "--upgrade-date", "June 1st"])
+    assert rc == 2
+    assert "--upgrade-date" in capsys.readouterr().out
 
 
 # --- dependency-free path -----------------------------------------------------------------

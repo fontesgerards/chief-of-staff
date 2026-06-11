@@ -206,6 +206,21 @@ def test_worklist_empty_on_clean_manifest():
     assert migrate.migration_worklist("# Validation findings\n\n(no findings)\n") == []
 
 
+def test_worklist_keeps_paths_with_spaces():
+    """Manifest columns are ` | `-delimited — a file path containing spaces must
+    survive into the worklist, not be truncated or dropped by a \\S+ match."""
+    manifest = (
+        "- aaaaaaaa | error | memory/semantic/accounts/holland america.md | "
+        "required_keys | missing required frontmatter key 'date' | first_seen: 2026-06-11\n"
+        "- bbbbbbbb | error | memory/episodic/coaching/2026-05-20.md | "
+        "has_origin | origin 'vibes' not in enum | first_seen: 2026-06-11\n"
+    )
+    assert migrate.migration_worklist(manifest) == [
+        "memory/semantic/accounts/holland america.md",
+        "memory/episodic/coaching/2026-05-20.md",
+    ]
+
+
 # --- schema marker + declined state -------------------------------------------------
 
 def test_is_migrated():
@@ -231,6 +246,48 @@ def test_declined_watermark_roundtrip():
     assert remarked.count("migration: declined") == 1
     assert remarked.count("migration_watermark:") == 1
     assert migrate.parse_declined(remarked) == (True, "memory/semantic/people/andre.md")
+
+
+def test_declined_watermark_roundtrip_with_spaces():
+    """A watermark path containing spaces must roundtrip mark_declined →
+    parse_declined intact (capture to end of line, not \\S+)."""
+    spaced = "memory/semantic/accounts/holland america.md"
+    marked = migrate.mark_declined(NO_MARKER_CONFIG, spaced)
+    assert migrate.parse_declined(marked) == (True, spaced)
+    # Re-marking with another spaced path updates in place, no duplicate lines.
+    respaced = "memory/semantic/people/jeremy roy.md"
+    remarked = migrate.mark_declined(marked, respaced)
+    assert remarked.count("migration_watermark:") == 1
+    assert migrate.parse_declined(remarked) == (True, respaced)
+
+
+def test_bom_prefixed_legacy_file_transforms():
+    """A leading UTF-8 BOM must not hide the frontmatter — the legacy file is
+    transformed (matching frontmatter.py's utf-8-sig tolerance), and a second
+    run is a no-op."""
+    bom_legacy = "\ufeff" + LEGACY_COACHING
+    out, changes = migrate.migrate_frontmatter(bom_legacy)
+    assert "created→date" in changes and "quoted covers range" in changes
+    assert out == EXPECTED_COACHING  # BOM dropped, transform applied
+    again, changes2 = migrate.migrate_frontmatter(out)
+    assert again == out and changes2 == []
+
+
+def test_quoted_tokens_match_unquoted_semantics():
+    """`migration: "declined"` and `schema: "1"` are the same scalars as their
+    bare forms under pyyaml — quotes must be stripped from captured tokens."""
+    for quote in ('"', "'"):
+        assert migrate.is_migrated(f"---\ntype: config\nschema: {quote}1{quote}\n---\nbody\n")
+        assert not migrate.is_migrated(f"---\nschema: {quote}0{quote}\n---\n")
+        quoted_cfg = (
+            f"---\ntype: config\nmigration: {quote}declined{quote}\n"
+            f"migration_watermark: {quote}memory/semantic/accounts/holland america.md{quote}\n---\n"
+        )
+        assert migrate.parse_declined(quoted_cfg) == (
+            True, "memory/semantic/accounts/holland america.md")
+    # Quoted `none` watermark still means None.
+    assert migrate.parse_declined(
+        '---\nmigration: "declined"\nmigration_watermark: "none"\n---\n') == (True, None)
 
 
 def test_declined_config_is_honored_by_validate(tmp_path):

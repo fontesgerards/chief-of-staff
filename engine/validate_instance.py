@@ -12,8 +12,13 @@ Behavior:
 - Schema gate (KTD3): `config.md` frontmatter `schema:` missing or < 1 → exactly
   ONE "migration pending" finding for the legacy remainder (never hundreds);
   `migration: declined` → one "suppressed by decline" line instead. In both
-  cases files written AFTER `--upgrade-date` (git-add date or mtime) are still
-  swept — post-upgrade writes must not go unvalidated (review fix ADV-3).
+  cases files written ON or AFTER the upgrade watermark (git-add date or mtime)
+  are still swept — post-upgrade writes must not go unvalidated (review fix
+  ADV-3). The watermark is `--upgrade-date` when given; otherwise it defaults
+  to the EARLIEST prior `findings-YYYY-MM-DD.md` date in the manifest directory
+  (the first post-upgrade sweep establishes the baseline — the weekly flow needs
+  no flag). No prior manifest → gate-only; today's manifest, once written,
+  becomes the baseline for the next run.
 - Sweep: every instance `*.md` minus schema.SWEEP_EXCLUSIONS (`memory/sources/**`
   is the injection boundary — never opened) and router files (CLAUDE.md/AGENTS.md).
   Typed artifacts are checked for required_keys + valid `origin`; `valid_links`
@@ -42,6 +47,9 @@ from lib import assertions, frontmatter, schema  # noqa: E402
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 FINDING_LINE = re.compile(r"^- ([0-9a-f]{8,}) \|")
 FIRST_SEEN = re.compile(r"first_seen: (\d{4}-\d{2}-\d{2})")
+# Anchored manifest filename — a stray findings-notes.md must never be treated
+# as a prior manifest (first_seen carry-forward / baseline derivation).
+FINDINGS_NAME = re.compile(r"^findings-(\d{4}-\d{2}-\d{2})\.md$")
 
 # Memory routers / entry files — structural, not artifacts; never carry a type schema.
 ROUTER_BASENAMES = {"CLAUDE.md", "AGENTS.md"}
@@ -80,6 +88,7 @@ ARTIFACT_PATH_RX = [
     (typ, _path_pattern_to_regex(spec["path_pattern"]))
     for typ, spec in schema.ARTIFACT_TYPES.items()
 ]
+ARTIFACT_PATH_RX_BY_TYPE = dict(ARTIFACT_PATH_RX)
 
 
 # --- findings ------------------------------------------------------------------
@@ -130,6 +139,15 @@ def check_file(instance: Path, rel: str) -> list[dict]:
                 ))
                 break
         return findings
+    # Typed file living at the wrong path (e.g. a person under accounts/):
+    # warn-only — the content may still be valid, but the location is suspect.
+    rx = ARTIFACT_PATH_RX_BY_TYPE.get(str(typ))
+    if rx is not None and not rx.match(rel):
+        findings.append(_finding(
+            "warn", rel, "path_pattern", "path",
+            f"type '{typ}' belongs at '{spec['path_pattern']}' — "
+            f"file path does not match",
+        ))
     for key in spec["required_keys"]:
         if key not in meta:
             findings.append(_finding(
@@ -165,8 +183,24 @@ def _file_date(instance: Path, rel: str, path: Path) -> str:
     return mtime
 
 
-def run_validation(instance: Path, upgrade_date: str | None = None) -> dict:
-    """Run the sweep; returns a report dict (findings, counts, mode). Pure read."""
+def _default_watermark(manifest_dir: Path) -> str | None:
+    """Earliest prior `findings-YYYY-MM-DD.md` date in the manifest dir — the
+    first post-upgrade sweep's baseline. None when no prior manifest exists
+    (gate-only; today's manifest, once written, becomes the baseline)."""
+    if not manifest_dir.is_dir():
+        return None
+    dates = sorted(m.group(1) for p in manifest_dir.glob("findings-*.md")
+                   if (m := FINDINGS_NAME.match(p.name)))
+    return dates[0] if dates else None
+
+
+def run_validation(instance: Path, upgrade_date: str | None = None,
+                   manifest_dir: Path | None = None) -> dict:
+    """Run the sweep; returns a report dict (findings, counts, mode). Pure read.
+
+    `manifest_dir` is where findings manifests live (defaults to
+    `<instance>/state/validation`); on gated instances it supplies the default
+    post-upgrade watermark when `upgrade_date` is not given."""
     instance = Path(instance)
     if not instance.is_dir():
         return {"instance": str(instance), "mode": "error", "schema_seen": None,
@@ -203,9 +237,15 @@ def run_validation(instance: Path, upgrade_date: str | None = None) -> dict:
                 "(config.md `schema:` missing or < 1)",
             ))
         # Review fix ADV-3: post-upgrade writes must not go unvalidated.
-        if upgrade_date:
+        # Without --upgrade-date (the weekly flow), the watermark defaults to
+        # the first sweep's baseline — the earliest prior findings manifest.
+        # `>=` (not `>`): re-flagging same-day legacy files is the safe direction.
+        if manifest_dir is None:
+            manifest_dir = instance / "state" / "validation"
+        watermark = upgrade_date or _default_watermark(Path(manifest_dir))
+        if watermark:
             for rel, p in iter_sweep_files(instance):
-                if _file_date(instance, rel, p) > upgrade_date:
+                if _file_date(instance, rel, p) >= watermark:
                     swept += 1
                     findings.extend(check_file(instance, rel))
 
@@ -220,7 +260,8 @@ def run_validation(instance: Path, upgrade_date: str | None = None) -> dict:
 def _previous_first_seen(manifest_path: Path) -> dict:
     """fingerprint → first_seen date from the latest prior findings file in the dir."""
     prev = sorted(p for p in manifest_path.parent.glob("findings-*.md")
-                  if p.resolve() != manifest_path.resolve())
+                  if FINDINGS_NAME.match(p.name)  # ignore e.g. findings-notes.md
+                  and p.resolve() != manifest_path.resolve())
     if not prev:
         return {}
     latest = prev[-1]
@@ -302,14 +343,16 @@ def main(argv=None) -> int:
                          "(e.g. <instance>/state/validation/findings-<date>.md)")
     ap.add_argument("--upgrade-date", default=None, metavar="YYYY-MM-DD",
                     help="on legacy/declined instances, still sweep files written "
-                         "after this date (git-add date or mtime)")
+                         "on/after this date (git-add date or mtime); overrides "
+                         "the default baseline (earliest prior findings manifest)")
     args = ap.parse_args(argv)
 
     if args.upgrade_date and not DATE_RE.fullmatch(args.upgrade_date):
         print(f"ERROR: --upgrade-date must be YYYY-MM-DD, got {args.upgrade_date!r}")
         return 2
 
-    report = run_validation(args.instance, upgrade_date=args.upgrade_date)
+    report = run_validation(args.instance, upgrade_date=args.upgrade_date,
+                            manifest_dir=args.manifest.parent if args.manifest else None)
     _print_summary(report)
     if args.manifest and not report.get("error"):
         path = write_manifest(report, args.manifest)
