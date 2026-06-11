@@ -4,7 +4,12 @@
     python3 engine/eval/run_all.py
     python3 engine/eval/run_all.py --json
 
-Exit code is non-zero if any scenario has a structural failure — wire this into CI.
+Also runs the repo-level lockstep guards (manifest version equality, root
+CLAUDE.md/AGENTS.md mirror — plan U3, R15) as a synthetic check group reported
+alongside the scenarios.
+
+Exit code is non-zero if any scenario or guard has a structural failure —
+wire this into CI.
 """
 from __future__ import annotations
 
@@ -15,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_scenario  # noqa: E402
+from lib import repo_guards  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 SCEN_DIR = HERE / "scenarios"
@@ -27,6 +33,7 @@ def main(argv=None) -> int:
 
     scenarios = sorted(p.name for p in SCEN_DIR.iterdir() if (p / "expected.yaml").exists())
     reports = [run_scenario.run(name) for name in scenarios]
+    reports.append(repo_guards.run_guards())  # repo-level lockstep guards (U3)
 
     if args.json:
         print(json.dumps(reports, indent=2))

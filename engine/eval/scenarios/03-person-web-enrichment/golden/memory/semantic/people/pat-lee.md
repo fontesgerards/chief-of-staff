@@ -20,7 +20,7 @@ enrich:
 - Inbound intro; little known yet.
 
 ## Facts
-- Web enrichment ran and found no usable public result; last_enriched stamped to avoid re-fetching this person every day.
+- Web enrichment ran and found no usable public result; last_enriched stamped to avoid re-fetching this person every day (observed, 2026-06-10, source: memory/sources/web/pat-lee-2026-06-10.html).
 
 ## Open with them
 - Learn their role.

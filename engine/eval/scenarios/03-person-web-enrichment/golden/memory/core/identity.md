@@ -1,5 +1,7 @@
 ---
 type: core
+budget_chars: 1200
+origin: confirmed
 ---
 
 # Identity
