@@ -1,10 +1,10 @@
 ---
 type: meeting-prep-brief
-date: YYYY-MM-DD
+date: YYYY-MM-DD          # filename: state/briefs/meeting-prep-YYYY-MM-DD.md
 meeting:                 # event title
 when:                    # start–end, local
 entities: []             # [[people]] / [[accounts]] involved
-origin: derived          # assembled from memory + sources; not a standing fact
+origin: derived          # observed | confirmed | inferred | imported | derived — assembled from memory + sources; not a standing fact
 ---
 
 # {{Meeting title}}

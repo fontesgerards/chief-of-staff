@@ -1,8 +1,8 @@
 ---
 type: episode            # meeting | decision | interaction | milestone
-date: YYYY-MM-DD
+date: YYYY-MM-DD          # filename: memory/episodic/<type>/YYYY-MM-DD-<slug>.md
 entities: []             # [[people]] / [[accounts]] / [[projects]] involved
-origin: observed
+origin: observed          # observed | confirmed | inferred | imported | derived
 sources: []
 ---
 

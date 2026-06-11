@@ -1,6 +1,6 @@
 ---
 type: core
-origin: confirmed
+origin: confirmed         # observed | confirmed | inferred | imported | derived
 budget_chars: 600
 ---
 

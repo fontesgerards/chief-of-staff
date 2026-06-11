@@ -1,8 +1,8 @@
 ---
 type: source
 source_kind:             # email | calendar | transcript | doc | web
-date: YYYY-MM-DD
-origin: observed         # sticky — anything derived from this stays observed-trust
+date: YYYY-MM-DD          # filename: memory/sources/<kind>/<slug>.md
+origin: observed         # observed | confirmed | inferred | imported | derived — sticky; anything derived from this stays observed-trust
 captured_by:             # extract-from-sources run id
 retention_until: YYYY-MM-DD   # prune raw excerpt after this date
 ---

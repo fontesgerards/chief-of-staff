@@ -1,8 +1,8 @@
 ---
 type: goals-snapshot
-month: YYYY-MM            # the cycle (filename: episodic/goals/YYYY-MM.md)
+month: YYYY-MM            # the cycle — YYYY-MM (month) granularity is intentional (filename: episodic/goals/YYYY-MM.md)
 date: YYYY-MM-DD          # run date
-origin: derived
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # Goals — {{month}}

@@ -1,7 +1,7 @@
 ---
 type: consolidation-changelog
 date: YYYY-MM-DD          # filename: log/maintenance/YYYY-MM-DD.md
-origin: derived
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # Consolidation — {{date}}

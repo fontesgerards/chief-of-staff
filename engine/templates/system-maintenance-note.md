@@ -1,8 +1,8 @@
 ---
 type: system-maintenance-note
 date: YYYY-MM-DD          # filename: state/briefs/system-maintenance-YYYY-MM-DD.md
-covers: YYYY-MM-DD/YYYY-MM-DD   # the week reviewed
-origin: derived
+covers: "YYYY-MM-DD/YYYY-MM-DD"   # the week reviewed
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # System maintenance — week of {{date}}

@@ -4,7 +4,7 @@ status: active
 last_touched: YYYY-MM-DD
 relationships: []
 confidence: 75
-origin: observed
+origin: observed          # observed | confirmed | inferred | imported | derived
 sources: []
 tier:                     # competitive tier if used
 ---
@@ -17,7 +17,7 @@ tier:                     # competitive tier if used
 - How they compete; their strengths/weaknesses vs. the principal's offer.
 
 ## Facts
-- Funding, customers, product moves, pricing (sourced, dated).
+- Funding, customers, product moves, pricing: `{{fact}} (origin, YYYY-MM-DD, source: …)` — superseded facts append `; valid_until: YYYY-MM-DD`.
 
 ## Watch
 - What to monitor; recent signals.

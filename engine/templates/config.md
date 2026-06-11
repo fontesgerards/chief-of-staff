@@ -1,6 +1,6 @@
 ---
 type: config
-created: {{YYYY-MM-DD}}        # onboarding run date
+date: {{YYYY-MM-DD}}           # onboarding run date
 ---
 
 # config.md — this instance's settings

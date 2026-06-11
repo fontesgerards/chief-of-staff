@@ -3,7 +3,7 @@ name: cos-onboarding
 description: Set up your AI Chief of Staff — observes your email/calendar to draft a profile, captures your writing voice, seeds your private memory, and hands you a how-to. Run this first. Re-run to re-seed.
 disable-model-invocation: true
 kind: installer
-run: once (or to re-seed)
+cadence: once             # re-run to re-seed
 ---
 
 # cos-onboarding — the installer (observe, don't make me teach you)
