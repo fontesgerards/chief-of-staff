@@ -26,5 +26,13 @@ A short, specific coaching note (not a list): the follow-up on last week's exper
 - **Continuity:** the note opens by following up on the prior week's experiment (read from `episodic/coaching/`); the first-ever run notes there's nothing to follow up rather than inventing one.
 - The note is written to `episodic/coaching/YYYY-MM-DD.md` and delivered to `delivery.coaching`; a light week yields just the forward experiment, not manufactured feedback.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| coaching note | `engine/templates/coaching-note.md` | `memory/episodic/coaching/YYYY-MM-DD.md` | `type`, `date`, `covers`, `origin` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

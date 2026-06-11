@@ -1,8 +1,8 @@
 ---
 type: research-digest
 date: YYYY-MM-DD          # filename: state/briefs/research-YYYY-MM-DD.md
-covers: YYYY-MM-DD/YYYY-MM-DD   # the week scanned
-origin: derived
+covers: "YYYY-MM-DD/YYYY-MM-DD"   # the week scanned
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # Research — week of {{date}}

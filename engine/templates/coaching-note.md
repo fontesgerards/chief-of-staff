@@ -1,8 +1,8 @@
 ---
 type: coaching-note
 date: YYYY-MM-DD          # the run date (filename: episodic/coaching/YYYY-MM-DD.md)
-covers: YYYY-MM-DD/YYYY-MM-DD   # the 7-day window reviewed
-origin: derived
+covers: "YYYY-MM-DD/YYYY-MM-DD"   # the 7-day window reviewed
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # Coaching — week of {{date}}

@@ -3,8 +3,9 @@
 > Strictly **append-only**. Never edits or deletes existing memory. Writes timestamped, sourced, `origin`-tagged entries to `instance/state/` and `instance/log/runs/<run>.md`. Reconciliation is the cold path's job, not yours. Because nothing is destroyed, a bad capture cannot silently corrupt the brain.
 
 ```
-## Capture — <skill> — <ISO datetime>
-facts:        [{claim, entity, confidence, origin, source}]   # origin: observed|confirmed|inferred|imported
+## Capture — <skill> — <YYYY-MM-DDTHH:MM±HH:MM>   # principal-local offset; UTC (+00:00) when unknown
+trigger:      scheduled | interactive   # if scheduled, add registered_via: <how it was wired> — feeds the schedule-liveness check
+facts:        [{claim, entity, confidence, origin, source}]   # origin: observed|confirmed|inferred|imported|derived
 entities:     [people / accounts / projects touched]
 loops:        opened: [...]   closed: [...]
 commitments:  [{who, what, due, source}]

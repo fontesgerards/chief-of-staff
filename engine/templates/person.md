@@ -1,10 +1,10 @@
 ---
 type: person
 status: active            # active | dormant | former
-last_touched: YYYY-MM-DD
+last_touched: YYYY-MM-DD  # recency — any mention bumps it (all entities); enrichment staleness is last_enriched/enrich below (person-only)
 relationships: []         # [[entity-name]] links — accounts, projects, other people
 confidence: 75            # 0 | 25 | 50 | 75 | 100
-origin: observed          # observed | confirmed | inferred | imported
+origin: observed          # observed | confirmed | inferred | imported | derived
 sources: []               # backlinks into memory/sources/
 role:                     # their role / title
 org:                      # [[account]] they belong to
@@ -21,7 +21,7 @@ enrich:                   # blank/true = eligible for web enrichment; false = op
 - Sensitivities / political context → link the `[[relationship]]` file rather than inlining.
 
 ## Facts
-- Durable, sourced facts. Each can carry inline `(origin, valid_until)` when superseded.
+- Durable, sourced facts: `{{fact}} (origin, YYYY-MM-DD, source: …)` — superseded facts append `; valid_until: YYYY-MM-DD`.
 
 ## Open with them
 - Open loops, commitments, next step.

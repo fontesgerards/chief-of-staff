@@ -47,6 +47,14 @@ final:
   # --- observability ---
   - desc: a maintenance changelog was written
     file_exists: log/maintenance/2026-06-05.md
+  - desc: the changelog declares a valid origin
+    has_origin: log/maintenance/2026-06-05.md
+  - desc: the changelog is marked as synthesized by the cold path (origin enum's `derived`)
+    frontmatter_eq: {path: log/maintenance/2026-06-05.md, key: origin, value: derived}
+
+  # --- schema standard (U1/U3): the golden represents a migrated instance ---
+  - desc: config.md carries the schema marker the validator gates on
+    frontmatter_eq: {path: config.md, key: schema, value: 1}
 
   # --- content phase (LLM-as-judge): declared, skipped by the structural runner ---
   - desc: the synthesized voice rule faithfully captures all three corrections without pasting them verbatim

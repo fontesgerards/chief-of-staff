@@ -1,6 +1,7 @@
 ---
 type: procedural
 skill: cos-meeting-follow-up
+last_touched: 2026-06-05
 origin: confirmed
 ---
 

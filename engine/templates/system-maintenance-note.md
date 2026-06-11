@@ -1,8 +1,8 @@
 ---
 type: system-maintenance-note
 date: YYYY-MM-DD          # filename: state/briefs/system-maintenance-YYYY-MM-DD.md
-covers: YYYY-MM-DD/YYYY-MM-DD   # the week reviewed
-origin: derived
+covers: "YYYY-MM-DD/YYYY-MM-DD"   # the week reviewed
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # System maintenance — week of {{date}}
@@ -12,6 +12,12 @@ origin: derived
 
 ## What didn't
 - {{recurring friction — which skill/tag keeps missing, per corrections.md + the health report.}}
+
+## Validation
+> Deterministic sweep (`engine/validate_instance.py`) — script output, never an LLM approximation. If `script_exec` is `unavailable` on this runtime, this section reads "validation unavailable on this runtime".
+- Findings: {{N error(s), M warn(s)}} — manifest: `state/validation/findings-{{date}}.md`
+- Top items: {{top findings (file · check · detail), or "none"}}
+- Fixes route to the next cold-path run (`cos-consolidate-memory`), never applied here.
 
 ## Proposed engine changes
 > STRUCTURAL only (would mislead any principal). If none: "No changes proposed."

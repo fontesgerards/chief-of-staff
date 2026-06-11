@@ -21,11 +21,13 @@ A CEO's outbound risk is *editorial* — wording, recipient, tone. The proposal 
 Memory writes are **inward** and are made safe a different way — not by approval, but by **append-only capture + git-reversible consolidation + confidence tiers**. Gating every memory write on approval would defeat "observe, don't teach."
 
 - **Hot path (every run, no approval):** end every skill with the capture footer (`engine/templates/capture-footer.md`). It is **strictly append-only** — it never edits or deletes existing memory, only adds timestamped, sourced, `origin`-tagged entries to `instance/state/` and `instance/log/runs/<run>.md`. Because nothing is destroyed, a bad capture cannot silently corrupt the brain.
-- **Cold path (weekly, reconciles):** only the `cos-consolidate-memory` skill (`engine/skills/cos-consolidate-memory/SKILL.md`) may edit or delete memory, and only under the safety tiers in `engine/methods/write-back.md`. Every destructive edit is a git commit you can review as a diff.
+- **Cold path (weekly, reconciles):** only the `cos-consolidate-memory` skill (`engine/skills/cos-consolidate-memory/SKILL.md`) may edit or delete memory, and only under the safety tiers in `engine/methods/write-back.md`. Every destructive edit is a reviewable diff: a git commit where git is available; otherwise a dated snapshot + before/after changelog (see `cos-consolidate-memory`).
 
 ## 3. Session continuity: read-first / write-last
 
 - **First action of every run:** read `instance/state/current.md` (plus `open-loops.md`, `commitments.md`, `pending-questions.md` as relevant). Do not re-mine the full archive.
+- **Runtime row (per session):** `instance/config.md` carries a body `runtime:` block (one capability row per host, written only by `cos-preflight`). Select the row matching this session's live detect-or-ask host — never inferred from on-disk artifacts, never another host's wiring. Missing row or host mismatch: interactive ⇒ run `cos-preflight` (append/update your own host's row only); non-interactive ⇒ fail closed (read-only floor, enrichment off, no probes, no config writes) and append "preflight needed for host `<X>`" to `log/runs/`. Duplicate rows for one host ⇒ use the newest `last_verified`, queue cleanup as a validation finding.
+- **Schedule liveness (interactive runs):** compare `schedules:` cadences against the most recent `trigger: scheduled` capture entries in `log/runs/` (manual runs don't count — the capture footer carries `trigger:`). An overdue `live` schedule on an expiring runtime (e.g. Cowork tasks expire ~7 days, app-open only) ⇒ surface a re-arm prompt **and** record it in `instance/queue/review/review-<date>.md` so the signal survives the session; `config.md` never silently claims `live` for a dead schedule.
 - **Last action of every run:** rewrite `instance/state/current.md` with where things stand, and append the capture footer.
 
 ## 4. Corrections drive learning
@@ -38,7 +40,7 @@ Learn how the principal works from their email/calendar/docs/transcripts. Only a
 
 ## 6. Trust every fact by its `origin`
 
-Every fact carries an `origin`: `observed` (seen in a source) · `confirmed` (principal stated/approved) · `inferred` (you deduced) · `imported` (bulk-seeded at onboarding). Origin is **sticky through transformation** — a fact derived from a low-trust source stays low-trust after summarization or consolidation. There is **no automated promotion across trust tiers**: nothing source-derived reaches `confirmed`/`procedural`/`core` without the principal's approval or independent corroboration. `inferred` facts decay fastest and may not drive an outward proposal without confirmation. *Tags say where a correction is written; origin says how much to trust a fact.*
+Every fact carries an `origin`: `observed` (seen in a source) · `confirmed` (principal stated/approved) · `inferred` (you deduced) · `imported` (bulk-seeded at onboarding) · `derived` (assembled from existing memory — briefs, digests, changelogs). Origin is **sticky through transformation** — a fact derived from a low-trust source stays low-trust after summarization or consolidation, and a `derived` artifact's trust follows the **weakest contributing source**. There is **no automated promotion across trust tiers**: nothing source-derived reaches `confirmed`/`procedural`/`core` without the principal's approval or independent corroboration, and `derived` never creates a promotion path of its own. `inferred` facts decay fastest and may not drive an outward proposal without confirmation; `derived` content is never a basis for outward action without underlying `confirmed`/`observed` facts. *Tags say where a correction is written; origin says how much to trust a fact.*
 
 ## 7. Memory-access conventions (no separate store layer in v1)
 
@@ -57,4 +59,4 @@ Memory is plain Markdown files; access them by reading the relevant `CLAUDE.md` 
 - Never send/post/schedule anything representing the principal without approval at the default dial.
 - Never edit `instance/memory/core/` (identity, voice, autonomy, priorities) outside a Tier-2 proposal the principal approves.
 - Never promote source-derived content into `procedural`/`core` on recurrence alone.
-- Every destructive memory edit is a git commit; if in doubt, capture low-confidence and let the cold path decide.
+- Every destructive memory edit is a reviewable diff: a git commit where git is available, otherwise a dated snapshot + before/after changelog (see `cos-consolidate-memory`); if in doubt, capture low-confidence and let the cold path decide.

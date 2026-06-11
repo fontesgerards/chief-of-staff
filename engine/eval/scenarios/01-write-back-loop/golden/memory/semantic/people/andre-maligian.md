@@ -18,8 +18,8 @@ org: "[[acme]]"
 - Owns the architecture call on the integration the principal is selling into.
 
 ## Facts
-- Title: **CTO** (origin: confirmed, 2026-05-12 — principal corrected via corr-20260512-1).
-- ~~Title: VP Engineering~~ (origin: imported, valid_until: 2026-05-12 — superseded, not deleted; prior value retained for history).
+- Title: **CTO** (confirmed, 2026-05-12, source: corr-20260512-1 — principal correction).
+- ~~Title: VP Engineering~~ (imported, 2026-05-05, source: onboarding import); valid_until: 2026-05-12 — superseded, not deleted; prior value retained for history.
 
 ## Open with them
 - Awaiting his sign-off on the security review.

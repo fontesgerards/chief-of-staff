@@ -2,7 +2,7 @@
 type: procedural
 skill:                   # the engine skill this adapts (e.g. meeting-prep)
 last_touched: YYYY-MM-DD
-origin: confirmed        # procedural rules are principal-confirmed (or promoted from clustered corrections)
+origin: confirmed        # observed | confirmed | inferred | imported | derived — procedural rules are principal-confirmed (or promoted from clustered corrections)
 ---
 
 # How {{principal}} wants `{{skill}}` done

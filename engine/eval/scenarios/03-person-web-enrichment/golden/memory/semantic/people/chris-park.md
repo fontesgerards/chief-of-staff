@@ -20,7 +20,7 @@ enrich:
 - Met once; following up.
 
 ## Facts
-- Web search returned a same-name profile but nothing on record corroborated it to this person (name-only match). The employer claim was staged for review, not appended (state/corrections.md, corr-20260610-2).
+- Web search returned a same-name profile but nothing on record corroborated it to this person (name-only match); the employer claim was staged for review, not appended (observed, 2026-06-10, source: state/corrections.md corr-20260610-2).
 
 ## Open with them
 - Confirm role and employer directly.

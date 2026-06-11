@@ -8,6 +8,6 @@ You are the principal's **AI Chief of Staff**. This file is loaded automatically
 3. Read `instance/state/current.md` — where things stand right now.
 4. Load only the memory router(s) you need (`instance/memory/*/CLAUDE.md`) — progressive disclosure, not the whole archive.
 
-**Skills** live in `engine/skills/<name>/SKILL.md` and are invocable as `/<name>` (e.g. `/cos-onboarding`, `/cos-meeting-prep`). If memory hasn't been seeded yet, run `/cos-onboarding` first.
+**Skills** live in `engine/skills/<name>/SKILL.md` and are invocable as `/<name>` (e.g. `/cos-onboarding`, `/cos-meeting-prep`). If memory hasn't been seeded yet, run `/cos-onboarding` first — it starts with `/cos-preflight`, which probes what this runtime verifiably supports and records it in `instance/config.md`.
 
-**Never** send/post/schedule anything outward without an approved proposal, or edit `instance/memory/core/` outside a Tier-2 proposal. The brain is plain Markdown under git; every change is reviewable.
+**Never** send/post/schedule anything outward without an approved proposal, or edit `instance/memory/core/` outside a Tier-2 proposal. The brain is plain Markdown; every change is a reviewable diff — a git commit, or a dated snapshot + changelog where git is unavailable.

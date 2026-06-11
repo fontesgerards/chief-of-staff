@@ -14,19 +14,19 @@
 
 ## Bundled connectors — the plugin's own Connectors tab
 
-> Verified against Anthropic's own `anthropics/claude-for-legal` plugin (which ships exactly this) + Google Workspace MCP docs, 2026-06. **Correction to an earlier version of this doc:** Gmail/Calendar/Drive *can* be bundled — they are first-party Google MCP servers, not undeclarable built-ins.
+> Verified 2026-06 against live Connect behavior + vendor docs. **Correction to an earlier version of this doc:** Gmail/Calendar/Drive can **NOT** be bundled — the Google MCP URLs lack dynamic client registration (DCR) and fail on Connect; they are Anthropic **built-in** connectors, wired from **Customize → Connectors** (see "Email / Calendar / Drive" below).
 
-**A connector in *our* plugin's Connectors tab is an MCP server declared in the plugin-root `engine/.mcp.json`.** When chief-of-staff is installed, each entry shows up with a **Connect** button (OAuth) for the user. This is how Anthropic's legal plugins surface Google Drive, Slack, etc. Form (wrapped, with display metadata):
+**A connector in *our* plugin's Connectors tab is an MCP server declared in the plugin-root `engine/.mcp.json`.** When chief-of-staff is installed, each entry shows up with a **Connect** button (OAuth) for the user. Only **DCR-capable first-party servers** belong here. Form (wrapped, with display metadata):
 
 ```json
 { "mcpServers": {
-    "Gmail": { "type": "http", "url": "https://gmailmcp.googleapis.com/mcp/v1",
-               "title": "Gmail", "description": "…" } } }
+    "Granola": { "type": "http", "url": "https://mcp.granola.ai/mcp",
+                 "title": "Granola", "description": "…" } } }
 ```
 
-- **Google (first-party, verified URLs):** Gmail `https://gmailmcp.googleapis.com/mcp/v1` · Calendar `https://calendarmcp.googleapis.com/mcp/v1` · Drive `https://drivemcp.googleapis.com/mcp/v1`. OAuth 2.0 on Connect. **Read-only scopes are available** (`gmail.readonly`, `calendar.events.readonly`, `drive.readonly`) — the OAuth consent governs the scope; no token/secret goes in `.mcp.json` (OAuth servers need none).
-- **Why this is local-first-OK (KTD-6):** `googleapis.com` / `mcp.slack.com` are the providers' **own** servers (first-party). Data flows provider→Claude — the same trust boundary as connecting via the global directory. **Only *non-first-party relays* (Composio etc.) are off the default path** — that's the line, not "any hosted server."
-- **The global directory is the alternative**, not the only path: Anthropic also ships a global **Customize → Connectors** directory where a user can Connect the same first-party integrations *without* a plugin. Bundling just brings them into our plugin's tab so the user doesn't hunt.
+- **What's bundleable:** the DCR-capable catalog below (Granola · Zoom · Fathom · Fireflies · Slack). **Google (Gmail/Calendar/Drive) is not** — see the built-ins section below; route those through **Customize → Connectors**. No token/secret goes in `.mcp.json` (OAuth servers need none).
+- **Why this is local-first-OK (KTD-6):** `mcp.granola.ai` / `mcp.slack.com` etc. are the providers' **own** servers (first-party). Data flows provider→Claude — the same trust boundary as connecting via the global directory. **Only *non-first-party relays* (Composio etc.) are off the default path** — that's the line, not "any hosted server."
+- **The global directory complements the tab, it doesn't duplicate it:** Anthropic's **Customize → Connectors** directory (Cowork/Desktop; claude.com/connectors) is where the **built-in** connectors (Gmail/Calendar/Drive, Microsoft 365) are connected. Bundling covers only the DCR-capable services above, so the user doesn't hunt for those.
 
 **`engine/.mcp.json` is committed/shipped with the plugin and contains no secrets** — so the KTD-10 gitignore/sync-exclude rule (below) does NOT apply to it; it applies only to per-user MCP configs a skill *writes at runtime* that could carry an `auth` block.
 
@@ -73,7 +73,9 @@ Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK**
 - **Verify:** **next turn**, after reload.
 
 ### Cowork
-- **Connectors come from the plugin's bundled `engine/.mcp.json`** — Gmail / Calendar / Drive show up in the **chief-of-staff plugin's Connectors tab**. Guide the user: open the plugin → **Connectors → Connect → OAuth** (prefer read-only on the consent screen). The skill **guides + verifies** (probe); there's no config or secret to write (it's declared in the shipped `.mcp.json`). The global **Customize → Connectors** directory is the fallback if the plugin tab isn't used. (Re-Sync the marketplace after a plugin update so new connectors appear.)
+- **Plugin tab (bundled):** Granola · Zoom · Fathom · Fireflies · Slack come from the plugin's shipped `engine/.mcp.json` — guide the user: open the chief-of-staff plugin → **Connectors → Connect → OAuth** (prefer read-only on the consent screen). The skill **guides + verifies** (probe); there's no config or secret to write.
+- **Gmail / Calendar / Drive (and Microsoft 365): NOT in the plugin tab.** They are Anthropic **built-in** connectors — guide the user to **Customize → Connectors → Connect** (read-only where offered). They can't be probed until the principal connects them at the account level; record `pending`, don't guess.
+- **Marketplace re-sync:** after a plugin update that changes `.mcp.json`, the user must **re-sync/update the plugin from the marketplace** before new connectors appear in the tab.
 
 ## Load-order-aware verify-by-probe (KTD-4)
 
@@ -84,7 +86,7 @@ Branch by host. **Use a reliable signal only if U9(a) found one; otherwise ASK**
 
 - **No secret in any written file.** No token/client-secret in `config.md` **or** any MCP config (`.mcp.json` / `.cursor/mcp.json` `auth` / `config.toml`). Secrets → OS keychain / env-var reference; the config references the env var, never the literal. (Cursor's `auth` block *can* hold a `CLIENT_SECRET` — route it to the keychain instead.)
 - **Gitignore + sync-exclude *workspace-local* configs.** `.mcp.json` / `.cursor/mcp.json` live in the working folder, which may be iCloud/Obsidian-synced or git-backed — an `auth` block there exfiltrates silently, so add them to `.gitignore` *and* the sync-exclusion list before writing. **Codex's `~/.codex/config.toml` is user-home** — outside the workspace and the synced vault — so it needs neither (just keep its secrets in the keychain). Where the runtime offers no programmatic sync-exclusion (iCloud `.nosync`, Obsidian Sync settings), **guide the principal to exclude it manually** rather than asserting it's handled.
-- **Least-privilege scopes.** The Google MCP servers offer read-only scopes (`gmail.readonly`, `calendar.events.readonly`, `drive.readonly`) — **prefer read-only**, and the OAuth **consent screen shows the scope before the user approves**. (The `.mcp.json` declares the server, not the scope; the server + consent govern it — so favor read-only by reviewing the consent screen, and tell the user what they're granting.) Over-grant is unrecoverable after consent.
+- **Least-privilege scopes.** Read-only scopes exist on every path — Google's (`gmail.readonly`, `calendar.events.readonly`, `drive.readonly`) via the built-in connectors' consent, and the bundled connectors' via theirs — **prefer read-only**, and the OAuth **consent screen shows the scope before the user approves**. (A config declares the server, not the scope; the server + consent govern it — so favor read-only by reviewing the consent screen, and tell the user what they're granting.) Over-grant is unrecoverable after consent — and on hosts where the outbound gate is `unavailable`, read-only *is* the propose-only floor (see Quick-reference).
 - **The "no-secret" grep test covers every written config file, not just `config.md`.**
 
 ## Trust tiering (KTD-6) — what's allowed on the default path
@@ -99,11 +101,13 @@ Connector-sourced text (email bodies, calendar titles/descriptions, transcripts)
 
 ## Quick-reference
 
-| Surface | Config location | Irreducible user action | Verify timing |
-|---|---|---|---|
-| Claude Code CLI | project `.mcp.json` / `claude mcp add` | `/mcp` → OAuth | in-session |
-| Codex | `~/.codex/config.toml` (user-home) | `codex mcp login` → OAuth | next turn |
-| Cursor | `.cursor/mcp.json` (+ reload) | OAuth on first use | next turn |
-| Cowork | bundled `engine/.mcp.json` (plugin) | plugin → Connectors → Connect → OAuth | after Connect |
+| Surface | Config location | Irreducible user action | Verify timing | Recommended scope |
+|---|---|---|---|---|
+| Claude Code CLI | project `.mcp.json` / `claude mcp add` | `/mcp` → OAuth | in-session | read-only |
+| Codex | `~/.codex/config.toml` (user-home) | `codex mcp login` → OAuth | next turn | read-only |
+| Cursor | `.cursor/mcp.json` (+ reload) | OAuth on first use | next turn | read-only |
+| Cowork | bundled `engine/.mcp.json` (plugin tab) + built-ins via Customize → Connectors | Connect → OAuth (tab or directory) | after Connect | read-only |
+
+> ⚠️ On hosts where the runtime row's outbound gate is `unavailable` (e.g. Cowork — settings.json hooks don't fire), a write-scope OAuth grant removes the propose-only floor entirely: **read-only is the enforcement floor, not a nicety.**
 
 *Specific server URLs + exact scope strings: verify at setup (KTD-7). Secrets: keychain/env-ref only (KTD-10). Non-first-party egress: explicit consent only (KTD-6).*

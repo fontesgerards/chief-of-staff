@@ -28,7 +28,10 @@ import re
 import sys
 from pathlib import Path
 
-VALID_ORIGINS = {"observed", "confirmed", "inferred", "imported"}
+# Self-contained by design (this hook must run with zero imports beyond stdlib).
+# Keep in sync with engine/eval/lib/assertions.py:VALID_ORIGINS — test_schema.py
+# asserts equality.
+VALID_ORIGINS = {"observed", "confirmed", "inferred", "imported", "derived"}
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
 # Entity files carry frontmatter + origin; logs/state/queue/sources are append-only notes.
 ENTITY_DIRS = ("/memory/semantic/", "/memory/episodic/", "/memory/procedural/")

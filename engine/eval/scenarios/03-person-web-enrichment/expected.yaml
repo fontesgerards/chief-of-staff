@@ -60,6 +60,10 @@ final:
   - desc: Pat's no-result page was fetched to sources/web/
     file_exists: memory/sources/web/pat-lee-2026-06-10.html
 
+  # --- schema standard (U1/U3): the golden represents a migrated instance ---
+  - desc: config.md carries the schema marker the validator gates on
+    frontmatter_eq: {path: config.md, key: schema, value: 1}
+
   # --- links resolve ---
   - desc: wikilinks in Dana's record all resolve
     valid_links: memory/semantic/people/dana-cole.md

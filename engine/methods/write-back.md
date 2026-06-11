@@ -33,7 +33,7 @@ Append to `instance/state/corrections.md` whenever a correction is detected (§4
 | Tag | Use when… | Promotes to | Threshold |
 |---|---|---|---|
 | `#voice` | substance fine but tone / phrasing / length / format wrong | `core/voice.md` + `procedural/drafting.md` | 3 |
-| `#fact` | a stated fact about an entity was wrong or stale | `semantic/<entity>.md` (correct, or supersede w/ `valid_until`) | **1** |
+| `#fact` | a stated fact about an entity was wrong or stale | `semantic/<entity>.md` (correct, or supersede — append `; valid_until: YYYY-MM-DD` to the fact line) | **1** |
 | `#process` | a skill done the wrong *way* — wrong structure, missed step, wrong emphasis | `procedural/<skill-of-the-run>.md` | 2 |
 | `#priority` | wrong thing surfaced/emphasized; misjudged what matters now | `core/current-priorities.md` | 2 |
 | `#scope` | did too much/little; acted when it should have asked (or vice-versa) | `core/autonomy.md` | 2 |
@@ -59,7 +59,7 @@ If the principal *accepts* a proposal unchanged, that is **positive signal**, no
 
 1. **Group** `status: open` corrections by `tag`, and within tag by `entity` (`#fact`/`#relationship`) or `skill` (`#process`/`#omission`).
 2. Promote a group if **any member has `strength: rule`** OR **count ≥ the tag's threshold**.
-3. **Draft the edit** to the tag's single target. `#fact` → supersede, don't overwrite (stamp `valid_until`, append new). `#process`/`#omission` → add/amend a rule or checklist line. Synthesize the group's `delta`s into one rule — don't paste verbatim.
+3. **Draft the edit** to the tag's single target. `#fact` → supersede, don't overwrite (append `; valid_until: YYYY-MM-DD` to the old fact line, add the new fact line below it — the fact-line format documented in the entity templates). `#process`/`#omission` → add/amend a rule or checklist line. Synthesize the group's `delta`s into one rule — don't paste verbatim.
 4. **Diversity check** — confirm the cluster spans *distinct contexts* (different meetings/recipients/accounts), not the same situation repeated. Broad pattern → a `core/` rule; narrow → a procedural note.
 5. **Classify the safety tier** (§5.4); route Tier-2 to the review surface, auto-apply Tier-1 with a changelog.
 6. **Mark** promoted corrections `status: promoted` with a backlink to the resulting edit.
@@ -75,6 +75,8 @@ If the principal *accepts* a proposal unchanged, that is **positive signal**, no
 | **2 — Propose to queue** | editing `core/` identity/voice/autonomy/priorities · deleting sourced evidence · carrying **source-derived** content into `procedural`/`core` | surfaces in the review surface as a **raw diff** for explicit approval |
 
 `#voice`/`#priority`/`#scope` promote into `core/` → **Tier 2 by construction**. `#process`/`#omission`/`#fact` are usually Tier 1 — *unless* their content is source-derived crossing into procedural/core, which forces Tier 2 (§8.1 gate). The autonomy dial in `config.md` sets the Tier-1↔Tier-2 line.
+
+**Migration mapping (one-time schema migration, plan U9):** mechanical schema renames/quoting (`created`→`date`, quoting `covers` ranges — `engine/eval/lib/migrate.py`) = **Tier 1**; fact-line *format* normalization to the canonical `{{fact}} (origin, YYYY-MM-DD, source: …)` form = **Tier 1 format-only** (content, values, origins, dates never change); anything that would change a value, origin, or date = **Tier 2**.
 
 ## 6. Worked examples
 
@@ -105,7 +107,7 @@ A single principal produces only a handful of corrections/week across 8 tags, so
 ## 8. Guards (structural, from validated prior art)
 
 ### 8.1 Provenance / origin (sticky)
-Every fact carries `origin` (`observed`/`confirmed`/`inferred`/`imported`), orthogonal to its routing tag.
+Every fact carries `origin` (`observed`/`confirmed`/`inferred`/`imported`/`derived`), orthogonal to its routing tag. `derived` (assembled from existing memory) trusts at its weakest contributing source — it is never itself a basis for promotion or outward action.
 - **Sticky through transformation** — a fact derived from a lower-trust source keeps the lower trust after summarization/consolidation. Without this, consolidation launders untrusted content into trusted tiers (the MemoryGraft / MINJA attack).
 - **No automated cross-tier promotion** — no auto path from `observed`/`imported`/`inferred` → `confirmed`, nor from any source-derived fact into `procedural`/`core`. Crossing a tier requires principal approval (Tier-2) or independent corroboration. **Recurrence count alone never crosses a tier.**
 - `inferred` decays fastest and may not drive an outward proposal without confirmation. `confirmed` is most durable and wins on conflict. A `#fact` correction promotes to `confirmed` — the principal just told you.

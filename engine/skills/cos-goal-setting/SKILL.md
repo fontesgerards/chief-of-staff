@@ -25,5 +25,15 @@ A proposed priority update (Tier-2 approval, to the queue) + a month-in-review d
 - **Continuity:** the run reviews progress against last month's `episodic/goals/` snapshot; the first-ever run baselines from `current-priorities.md` rather than inventing a prior month.
 - A snapshot is written to `episodic/goals/YYYY-MM.md` recording the committed (not draft) priorities; the month-in-review is delivered to `delivery.goal-setting`.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| goals snapshot | `engine/templates/goals-snapshot.md` | `memory/episodic/goals/YYYY-MM.md` | `type`, `month`, `date`, `origin` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
+The `core/current-priorities.md` change is a Tier-2 raw diff in `queue/review/review-<date>.md` (no frontmatter schema) — never a direct write.
+
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

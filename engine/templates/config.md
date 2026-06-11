@@ -1,11 +1,35 @@
 ---
 type: config
-created: {{YYYY-MM-DD}}        # onboarding run date
+date: {{YYYY-MM-DD}}           # onboarding run date
+schema: 1                      # schema version; written by onboarding, bumped only by migration
 ---
 
 # config.md — this instance's settings
 
 > Instantiated by `cos-onboarding` from this template. The single place per-instance behavior is tuned. **Personal — never committed to the engine repo.** Ships with safe defaults: fill `{{…}}` placeholders, leave the rest unless the principal asks to change it. **No secrets ever** (keychain / runtime auth only).
+
+## Runtime capabilities
+```yaml
+# Written ONLY by cos-preflight (probed, never assumed — see that skill). One row per
+# host this instance is opened from; each session SELECTS the row matching its live
+# detect-or-ask host and may append/update its OWN host's row only — never another's.
+# Lives in the BODY on purpose: the dependency-free frontmatter parser is flat-only.
+# Capability values: verified | unverified | unavailable (+ last_verified per row).
+# Fail-closed defaults applied on write: hooks ≠ verified ⇒ read-only OAuth floor +
+# session notice; isolation ≠ verified ⇒ person_enrichment_default: false.
+runtime:
+  {{host}}:                            # claude-code | cowork | codex | cursor
+    detected_via: {{signal}}           # live signal used, or asked-principal — NEVER inferred from on-disk artifacts
+    git: {{tri-state}}                 # binary + temp-dir init/commit probed; repo durability is a separate note on VM-backed hosts
+    scheduling: {{tri-state}}          # tool present + expiry semantics (cowork: tasks expire ~7d, app-open only); registered_via vocabulary supported
+    hooks: {{tri-state}}               # verified ONLY via in-session inward canary; cowork: unavailable (anthropics/claude-code#63360)
+    outbound_gate: {{tri-state}}       # mirrors hooks — a degraded gate is observable here, not implied
+    script_exec: {{tri-state}}         # python3 present + engine scripts runnable
+    plugin_root: {{tri-state}}         # session can read engine/templates/ via its plugin path
+    isolation: {{tri-state}}           # extractor write-isolation OS-enforced on this host (U0 spike (c)); doc-derived ⇒ unverified
+    person_enrichment_default: {{bool}}  # false where isolation ≠ verified (e.g. cowork)
+    last_verified: {{YYYY-MM-DD}}
+```
 
 ## Autonomy
 ```yaml
@@ -84,9 +108,9 @@ queue:
 # Web enrichment of person records, run inside the daily entity-enrichment pass
 # (engine/skills/cos-entity-enrichment/SKILL.md). Captures job/role/org changes only.
 person_enrichment:
-  enabled: true              # DEFAULT-OFF where extractor isolation is not OS-verified (datamark-only
-                             # fallback, e.g. Cowork): set false unless the principal opts in, and record the
-                             # weaker-guarantee note. Safe to leave true on CLI/Codex with verified isolation.
+  enabled: {{bool}}          # set by preflight from the runtime row — false where isolation ≠ verified
+                             # (datamark-only fallback, e.g. Cowork) unless the principal explicitly opts in
+                             # (record the weaker-guarantee note). true only with OS-verified isolation (CLI/Codex).
   stale_after_days: 90       # re-enrich a touched person only if last_enriched is absent or older than this
   max_fetches_per_run: 10    # per-run cap; overflow defers to the next run, oldest-last_enriched-first
   opt_out: []                # person slugs never web-searched (also honored via `enrich: false` on the record)

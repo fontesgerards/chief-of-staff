@@ -8,31 +8,28 @@ It does not act on the world by default. It **proposes**; you approve.
 
 ## Install
 
-**As a plugin (easiest)** — Claude Code:
-```text
-/plugin marketplace add fontesgerards/chief-of-staff
-/plugin install chief-of-staff@chief-of-staff
-```
-Then, in the folder where you want your brain to live: `/cos-onboarding`. Codex uses the same `engine/` package — see `PUBLISH.md`. Publishing steps + the naming/collision note: `PUBLISH.md`.
+Three paths — full, self-contained steps for each in `INSTALL.md`:
 
-**Or clone (dev / no plugin):** `git clone …`, `./setup.sh`, open the folder, `/cos-onboarding`. See `INSTALL.md`.
+- **Claude Cowork (no terminal):** Customize → Plugins → Browse plugins → install **chief-of-staff**, open the folder for your brain, run `/cos-onboarding`.
+- **Claude Code (CLI):** `/plugin marketplace add fontesgerards/chief-of-staff` + `/plugin install chief-of-staff@chief-of-staff`, then `/cos-onboarding`.
+- **Clone (dev / no plugin):** `git clone …`, `./setup.sh`, open the folder, `/cos-onboarding`. The only path that uses `setup.sh`.
 
-The **engine** is the shared plugin; your **instance** (private brain) is created by `/cos-onboarding` in your own folder — it never lives in the plugin.
+The **engine** is the shared plugin; your **instance** (private brain) is created by `/cos-onboarding` in a folder you confirm during onboarding (never silently the current directory) — it never lives in the plugin. Codex uses the same `engine/` package — see `PUBLISH.md` (also publishing steps + the naming/collision note). Anything connector-related: `engine/methods/connectors.md`.
 
 ## The two halves
 
 ```
 chief-of-staff/
 ├─ CLAUDE.md / AGENTS.md  ← always-loaded entry (Claude / Codex) → engine/INSTRUCTIONS.md
-├─ setup.sh / INSTALL.md  ← one command to make skills invocable (/cos-onboarding, $cos-onboarding)
+├─ setup.sh / INSTALL.md  ← install paths; setup.sh wires the clone path only (.claude/ + .agents/)
 ├─ engine/      ← git, shareable, identical for everyone (THE PRODUCT — no personal data)
 │  ├─ INSTRUCTIONS.md   global behavior + autonomy + memory-access conventions
 │  ├─ skills/cos-<name>/SKILL.md   invocable skills — cos-onboarding, cos-meeting-prep, cos-consolidate-memory, …
 │  ├─ methods/          write-back, problem-solving, minto, coaching, PEI
 │  ├─ templates/        entity schemas, memory-file + capture + proposal templates
 │  └─ docs/             capability spike + write-isolation config + build notes
-├─ .claude/skills → engine/skills   (symlink — Claude discovers /<name>)
-├─ .agents/skills → engine/skills   (symlink — Codex discovers $<name>)
+├─ .claude/skills → engine/skills   (symlink, clone path only — Claude discovers /<name>)
+├─ .agents/skills → engine/skills   (symlink, clone path only — Codex discovers $<name>)
 └─ instance/   ← local + private, GITIGNORED here; its own separate backup repo (one person's brain)
    ├─ config.md         identity, goals, autonomy level, connectors, schedules
    ├─ memory/           core · semantic · episodic · procedural · sources · archive
@@ -46,7 +43,7 @@ chief-of-staff/
 
 ## Status
 
-v1 scaffold complete; skills are invocable as commands (run `./setup.sh`, then `/cos-onboarding` in Claude or `$cos-onboarding` in Codex — see `INSTALL.md`). **U0 capability spike resolved (2026-06-04):** scheduling ✓, connectors ✓, write-isolation ✓ (structural — enforced per-run via Claude Code `permissions.deny`+sandbox or Codex permissions profile; recipes in `engine/docs/write-isolation-config.md`). KTD-5 stays "structural." Next: run `/cos-onboarding` to seed a real `instance/`, and add a private remote to the instance backup repo.
+v1 scaffold complete; skills are invocable as commands on every path (`/cos-onboarding` in Claude, `$cos-onboarding` in Codex — install paths in `INSTALL.md`). **U0 capability spike resolved (2026-06-04):** scheduling ✓, connectors ✓, write-isolation ✓ (structural — enforced per-run via Claude Code `permissions.deny`+sandbox or Codex permissions profile; recipes in `engine/docs/write-isolation-config.md`). KTD-5 stays "structural." Next: run `/cos-onboarding` to seed a real `instance/`, and add a private remote to the instance backup repo.
 
 ## Core principles
 

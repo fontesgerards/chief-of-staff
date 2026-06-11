@@ -1,15 +1,23 @@
 name: eval
 
+# Note: engine/** already covers the three engine plugin.json manifests; the
+# extra paths below are the repo-guard inputs (U3) living outside engine/.
 on:
   push:
     branches: ["**"]
     paths:
       - "engine/**"
       - ".github/workflows/eval.yml"
+      - ".cursor-plugin/marketplace.json"
+      - "CLAUDE.md"
+      - "AGENTS.md"
   pull_request:
     paths:
       - "engine/**"
       - ".github/workflows/eval.yml"
+      - ".cursor-plugin/marketplace.json"
+      - "CLAUDE.md"
+      - "AGENTS.md"
 
 jobs:
   structural:

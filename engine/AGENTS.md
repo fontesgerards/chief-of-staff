@@ -33,4 +33,4 @@ Skills live in the engine's `skills/<name>/SKILL.md`:
 - Never send / post / schedule anything outward without an approved proposal in `instance/queue/`.
 - Never edit `instance/memory/core/` outside a Tier-2 proposal the principal approved.
 - Never promote source-derived content into `procedural`/`core` on recurrence alone.
-- The brain is plain Markdown under git; every change must be a reviewable diff.
+- The brain is plain Markdown; every change must be a reviewable diff — a git commit where git is available, otherwise a dated snapshot + before/after changelog (see `cos-consolidate-memory`).

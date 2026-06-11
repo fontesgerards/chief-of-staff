@@ -2,7 +2,7 @@
 type: semantic
 subtype: glossary
 last_touched: YYYY-MM-DD
-origin: imported            # observed-then-confirmed at onboarding; stays imported until corrected
+origin: imported            # observed | confirmed | inferred | imported | derived — observed-then-confirmed at onboarding; stays imported until corrected
 ---
 
 # Glossary — the principal's shorthand

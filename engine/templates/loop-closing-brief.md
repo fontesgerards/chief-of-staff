@@ -1,7 +1,7 @@
 ---
 type: loop-closing-brief
 date: YYYY-MM-DD          # filename: state/briefs/loop-closing-YYYY-MM-DD.md
-origin: derived
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # Open loops — {{date}}

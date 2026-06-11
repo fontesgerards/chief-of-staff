@@ -1,7 +1,7 @@
 ---
 type: consolidation-changelog
 date: YYYY-MM-DD          # filename: log/maintenance/YYYY-MM-DD.md
-origin: derived
+origin: derived           # observed | confirmed | inferred | imported | derived
 ---
 
 # Consolidation — {{date}}
@@ -13,6 +13,13 @@ origin: derived
 - **Supersede** · `<entity>.<fact>` old→new (`valid_until` stamped) · Tier 1
 - **Decay** · `<fact/correction>` aged/archived/dismissed · Tier 1
 - **Prune** · `<loop/question>` state/ → episodic/ · Tier 1
+
+## Review surface (no-git)
+> Only on instances without git (the `runtime:` row's `git` ≠ `verified`). With git, the commit diff is the review surface — omit this section.
+- **Snapshot:** `<instance>-snapshots/{{YYYY-MM-DD}}/` (taken before any edit; expired `sources/` pruned first; retention 3)
+- **Changed:** {{files edited}}
+- **Added:** {{files created}}
+- **Deleted:** {{files removed}}
 
 ## Health report
 > Read by `cos-system-maintenance`. Keep the table shape stable.

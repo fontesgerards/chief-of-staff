@@ -1,6 +1,6 @@
 ---
 type: proposal
-created: YYYY-MM-DD
+date: YYYY-MM-DD          # filename: queue/outbound/YYYY-MM-DD-<slug>.md
 skill:                   # the run that produced it
 status: pending          # pending | approved | rejected | sent
 reversibility: reversible   # reversible | irreversible
