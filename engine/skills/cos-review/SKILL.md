@@ -35,16 +35,20 @@ Scripts live beside this file: `review_lib.py` (collect cards / parse decisions 
 ### Phase A — render
 1. **Read state first** (`INSTRUCTIONS.md` §3): `state/current.md`. Resolve the instance folder
    (engine `AGENTS.md` — two roots).
-2. **Collect + render.** Run `render.py <instance_dir> <YYYY-MM-DD>`. It collects every pending
+2. **Collect + render.** Run `render.py <instance_dir> <YYYY-MM-DD> --open`. It collects every pending
    item — `queue/outbound/*.md` (`status: pending`), `state/pending-questions.md` (open rows), and
    staged Tier-2 diffs under `queue/review/memory/*` (shown as the **raw diff**, never summarized) —
-   and writes `queue/review/dashboard-<date>.html`. Empty queue → a valid "nothing to review" page.
+   writes `queue/review/dashboard-<date>.html`, and **opens it in the default browser** (`--open`;
+   best-effort — on a headless/sandboxed host it just prints the path). Empty queue → a valid
+   "nothing to review" page. (Omit `--open` for non-interactive/scheduled runs.)
 3. **Choose the write-back path** by the **live host's** `config.md` runtime row (§3 — match this
    session's host, never another's):
-   - **`script_exec` verified** → offer the live server: `COS_SCRIPT_EXEC_VERIFIED=1 python serve.py
-     <instance_dir> <date>`, relay the printed `http://127.0.0.1:<port>/` URL. Clicks save
-     automatically; the principal clicks **Done** (or you stop the process) when finished.
-   - **otherwise** → tell the principal to open the `dashboard-<date>.html` file directly and click
+   - **`script_exec` verified** → run the live server **instead** (don't double-open): `COS_SCRIPT_EXEC_VERIFIED=1
+     python serve.py <instance_dir> <date> --open` — it serves the dashboard and opens the
+     `http://127.0.0.1:<port>/` URL automatically. Clicks save automatically; the principal clicks
+     **Done** (or you stop the process) when finished. In this mode render in step 2 **without** `--open`
+     (or skip the standalone render) so only the live URL opens.
+   - **otherwise** → the `--open` from step 2 already opened the file; the principal clicks
      **Export decisions** when done, saving `decisions-<date>.jsonl` into `queue/review/`.
 4. **Stop.** The principal triages on their own time. Do not proceed to ingest until decisions exist.
 
