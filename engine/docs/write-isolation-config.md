@@ -15,7 +15,9 @@ Run the extractor with a **dedicated restricted settings file** (don't put these
   "permissions": {
     "deny": [
       "Write(//ABSPATH/instance/memory/**)",
-      "Edit(//ABSPATH/instance/memory/**)"
+      "Edit(//ABSPATH/instance/memory/**)",
+      "Write(//ABSPATH/instance-snapshots/**)",
+      "Edit(//ABSPATH/instance-snapshots/**)"
     ],
     "allow": [
       "Write(//ABSPATH/instance/memory/sources/**)",
@@ -25,7 +27,7 @@ Run the extractor with a **dedicated restricted settings file** (don't put these
   "sandbox": {
     "enabled": true,
     "filesystem": {
-      "denyWrite": ["//ABSPATH/instance/memory"],
+      "denyWrite": ["//ABSPATH/instance/memory", "//ABSPATH/instance-snapshots"],
       "allowWrite": ["//ABSPATH/instance/memory/sources", "//ABSPATH/instance/log/runs"]
     }
   }
@@ -36,6 +38,7 @@ Run the extractor with a **dedicated restricted settings file** (don't put these
 - `sandbox.filesystem.denyWrite` adds **OS-level** enforcement (Seatbelt on macOS, bubblewrap on Linux) that also covers `Bash` and any subprocess — so even a `bash`-driven write fails with an OS error. macOS/Linux/WSL2 only.
 - Optional third layer — a `PreToolUse` hook that `exit 2`s on any `Write`/`Edit` whose path is under `instance/memory/` (custom logic, also unbypassable vs the model).
 - Note the **allow** carve-outs: the extractor *may* write `memory/sources/` summaries + `log/runs/` staging, but nothing else under `memory/`.
+- `<instance>-snapshots/` (the no-git backup dir, KTD8) is denied too: snapshots hold the same PII as the instance, so the extractor must not write there either.
 
 **Cowork caveat:** confirm Cowork honors settings.json `permissions`/`sandbox` the same as the CLI (likely, but undocumented as of 2026-06). If it does **not**, run the extraction step itself via the Claude Code CLI or Codex sandbox (both enforce it), and let Cowork drive the rest. *Update 2026-06-11:* Cowork does **NOT** fire settings.json hooks (anthropics/claude-code#63360) — apply the same skepticism to `permissions`/`sandbox` until the preflight `runtime:` row verifies them per-host; the extraction-step fallback above stands.
 
@@ -55,6 +58,7 @@ default_permissions = "cos-default"          # normal runs (cold path can write 
 "instance/memory" = "read"     # ...but memory/ is read-only → writes = EPERM
 "instance/memory/sources" = "write"   # except staging summaries
 "instance/log/runs"       = "write"   # and run staging
+"instance-snapshots"      = "read"    # no-git snapshots hold the same PII — never extractor-writable
 
 [permissions.extractor.network]
 enabled = false

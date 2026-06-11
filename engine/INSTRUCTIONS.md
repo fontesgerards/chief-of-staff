@@ -21,7 +21,7 @@ A CEO's outbound risk is *editorial* — wording, recipient, tone. The proposal 
 Memory writes are **inward** and are made safe a different way — not by approval, but by **append-only capture + git-reversible consolidation + confidence tiers**. Gating every memory write on approval would defeat "observe, don't teach."
 
 - **Hot path (every run, no approval):** end every skill with the capture footer (`engine/templates/capture-footer.md`). It is **strictly append-only** — it never edits or deletes existing memory, only adds timestamped, sourced, `origin`-tagged entries to `instance/state/` and `instance/log/runs/<run>.md`. Because nothing is destroyed, a bad capture cannot silently corrupt the brain.
-- **Cold path (weekly, reconciles):** only the `cos-consolidate-memory` skill (`engine/skills/cos-consolidate-memory/SKILL.md`) may edit or delete memory, and only under the safety tiers in `engine/methods/write-back.md`. Every destructive edit is a git commit you can review as a diff.
+- **Cold path (weekly, reconciles):** only the `cos-consolidate-memory` skill (`engine/skills/cos-consolidate-memory/SKILL.md`) may edit or delete memory, and only under the safety tiers in `engine/methods/write-back.md`. Every destructive edit is a reviewable diff: a git commit where git is available; otherwise a dated snapshot + before/after changelog (see `cos-consolidate-memory`).
 
 ## 3. Session continuity: read-first / write-last
 
@@ -59,4 +59,4 @@ Memory is plain Markdown files; access them by reading the relevant `CLAUDE.md` 
 - Never send/post/schedule anything representing the principal without approval at the default dial.
 - Never edit `instance/memory/core/` (identity, voice, autonomy, priorities) outside a Tier-2 proposal the principal approves.
 - Never promote source-derived content into `procedural`/`core` on recurrence alone.
-- Every destructive memory edit is a git commit; if in doubt, capture low-confidence and let the cold path decide.
+- Every destructive memory edit is a reviewable diff: a git commit where git is available, otherwise a dated snapshot + before/after changelog (see `cos-consolidate-memory`); if in doubt, capture low-confidence and let the cold path decide.

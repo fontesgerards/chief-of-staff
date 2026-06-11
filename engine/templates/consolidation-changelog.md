@@ -14,6 +14,13 @@ origin: derived           # observed | confirmed | inferred | imported | derived
 - **Decay** · `<fact/correction>` aged/archived/dismissed · Tier 1
 - **Prune** · `<loop/question>` state/ → episodic/ · Tier 1
 
+## Review surface (no-git)
+> Only on instances without git (the `runtime:` row's `git` ≠ `verified`). With git, the commit diff is the review surface — omit this section.
+- **Snapshot:** `<instance>-snapshots/{{YYYY-MM-DD}}/` (taken before any edit; expired `sources/` pruned first; retention 3)
+- **Changed:** {{files edited}}
+- **Added:** {{files created}}
+- **Deleted:** {{files removed}}
+
 ## Health report
 > Read by `cos-system-maintenance`. Keep the table shape stable.
 

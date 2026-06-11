@@ -8,7 +8,7 @@ mutates: true             # the ONLY skill allowed to edit/delete memory
 
 # consolidate-memory — the cold path
 
-> The **only** place destructive memory edits happen, and only under discipline. Reads the week's captures + corrections and reconciles them into the canonical Markdown. Output is a **reviewable diff in batch** + a changelog + a git commit — you review the diff, never write-by-write. Full algorithm: `engine/methods/write-back.md` §5.
+> The **only** place destructive memory edits happen, and only under discipline. Reads the week's captures + corrections and reconciles them into the canonical Markdown. Output is a **reviewable diff in batch** + a changelog + a git commit (or, without git, a dated snapshot + before/after file list — "Review surface" below) — you review the batch, never write-by-write. Full algorithm: `engine/methods/write-back.md` §5.
 
 ## Inputs
 - `instance/state/corrections.md` (status: open)
@@ -36,6 +36,19 @@ The weekly `cos-system-maintenance` sweep (`engine/validate_instance.py`) writes
    - **Anything touching `core/` or changing fact content** → **Tier 2**: raw diff to `queue/review/review-<date>.md` for approval.
 4. **Fingerprint dedup:** a fingerprint already actioned and still open (a Tier-2 proposal pending approval) is **not re-proposed** — note it in the changelog as "open, awaiting approval" and move on.
 
+## Review surface — before any destructive edit (KTD8)
+
+Branch on this host's `runtime:` row (`git` state) **before the first destructive edit**:
+
+- **Git `verified`:** the existing flow stands — the batch lands as a git commit of `instance/`; the diff is the review surface.
+- **No git (`unavailable`/`unverified`):** a snapshot is **mandatory first** — never edit-then-snapshot:
+  1. **Prune expired `sources/` items first** (`retention_until` past ⇒ delete) *before* copying — pruned PII must never persist into a snapshot; snapshots inherit `sources/` pruning.
+  2. Copy `instance/` → sibling `<instance>-snapshots/<YYYY-MM-DD>/` (the snapshot dir lives beside the instance, never inside it, and is excluded from its own snapshots).
+  3. Apply retention 3: delete the oldest snapshot(s) beyond three.
+  4. Then edit, and write the **before/after file list** (changed/added/deleted, plus the snapshot path) into the changelog's "Review surface (no-git)" section — that list is the review surface where there is no diff.
+
+The one-time schema migration runs through this skill and follows the same snapshot-first rule.
+
 ## Safety tiers (write-back §5.4)
 - **Tier 1 (auto + changelog):** merges, supersedes, decay, most `#process`/`#fact` promotions.
 - **Tier 2 (propose to queue):** any edit to `core/` (identity/voice/autonomy/priorities), deleting sourced evidence, or carrying **source-derived** content into `procedural`/`core`. Write these to `instance/queue/review/review-<date>.md` as a **raw diff** (not a summary) for explicit approval.
@@ -54,7 +67,7 @@ The weekly `cos-system-maintenance` sweep (`engine/validate_instance.py`) writes
 
 ## Outputs
 1. `instance/log/maintenance/<date>.md` from `engine/templates/consolidation-changelog.md` — the changelog (every operation, before/after + tier) **and** the health report. Keep the health-report table shape stable: `cos-system-maintenance` machine-reads it.
-2. A git commit of `instance/` (the diff is the review surface).
+2. A git commit of `instance/` where git is `verified` (the diff is the review surface); otherwise the dated snapshot + the changelog's before/after file list ("Review surface" above).
 3. Tier-2 proposals appended to `instance/queue/review/review-<date>.md`.
 4. The health report **is the §Health report section** of that maintenance file (per-tag rate or "insufficient data", promotion-survival, mistagging/`#other` flags, source-derived-cap status) — not a separate file.
 5. Backup commit per `instance/.backup-instructions.md` cadence.
