@@ -220,6 +220,57 @@ def test_stray_findings_notes_ignored_by_first_seen_carry_forward(tmp_path):
     assert "first_seen: 2026-06-11" in line  # carried from the real prior manifest
 
 
+def test_prior_manifest_null_date_does_not_become_first_seen_none(tmp_path):
+    """A prior manifest with `date: null` and a finding line missing its
+    `first_seen:` must not stamp the literal string "None" into the new
+    manifest — the new line defaults to today instead."""
+    inst = _copy_golden(tmp_path)
+    person = inst / "memory" / "semantic" / "people" / "andre-maligian.md"
+    person.write_text(
+        person.read_text(encoding="utf-8").replace("origin: confirmed", "origin: vibes"),
+        encoding="utf-8")
+    rep1 = vi.run_validation(inst)
+    fp = rep1["findings"][0]["fingerprint"]
+    val_dir = inst / "state" / "validation"
+    val_dir.mkdir(parents=True)
+    # Hand-written prior manifest: date explicitly null, line lacks first_seen.
+    (val_dir / "findings-2026-06-11.md").write_text(
+        "---\ntype: validation-findings\ndate: null\nschema_seen: 1\n---\n\n"
+        f"- {fp} | error | memory/semantic/people/andre-maligian.md | "
+        "has_origin | bad origin\n",
+        encoding="utf-8")
+    rep2 = vi.run_validation(inst)
+    out = vi.write_manifest(rep2, val_dir / "findings-2026-06-18.md", today="2026-06-18")
+    line = next(ln for ln in out.read_text(encoding="utf-8").splitlines()
+                if ln.startswith(f"- {fp}"))
+    assert "first_seen: None" not in line
+    assert "first_seen: 2026-06-18" in line  # defaulted to today, not "None"
+
+
+def test_prior_manifest_date_fallback_still_carries(tmp_path):
+    """The happy-path fallback is preserved: a prior line missing `first_seen:`
+    inherits the prior manifest's real `date:`."""
+    inst = _copy_golden(tmp_path)
+    person = inst / "memory" / "semantic" / "people" / "andre-maligian.md"
+    person.write_text(
+        person.read_text(encoding="utf-8").replace("origin: confirmed", "origin: vibes"),
+        encoding="utf-8")
+    rep1 = vi.run_validation(inst)
+    fp = rep1["findings"][0]["fingerprint"]
+    val_dir = inst / "state" / "validation"
+    val_dir.mkdir(parents=True)
+    (val_dir / "findings-2026-06-11.md").write_text(
+        "---\ntype: validation-findings\ndate: 2026-06-11\nschema_seen: 1\n---\n\n"
+        f"- {fp} | error | memory/semantic/people/andre-maligian.md | "
+        "has_origin | bad origin\n",
+        encoding="utf-8")
+    rep2 = vi.run_validation(inst)
+    out = vi.write_manifest(rep2, val_dir / "findings-2026-06-18.md", today="2026-06-18")
+    line = next(ln for ln in out.read_text(encoding="utf-8").splitlines()
+                if ln.startswith(f"- {fp}"))
+    assert "first_seen: 2026-06-11" in line
+
+
 # --- warn-only checks ------------------------------------------------------------------
 
 def test_typed_file_at_wrong_path_is_warn_exit_zero(tmp_path):
@@ -281,6 +332,28 @@ def test_sweep_works_without_pyyaml(monkeypatch, tmp_path):
     rep2 = vi.run_validation(inst)
     assert len(rep2["findings"]) == 1
     assert "migration pending" in rep2["findings"][0]["detail"]
+
+
+def test_malformed_frontmatter_never_crashes_sweep(monkeypatch, tmp_path):
+    """frontmatter.parse catches yaml errors and falls back to its tiny parser,
+    so a corrupted user-edited file degrades to ordinary findings — the weekly
+    sweep must complete either way (pyyaml present or absent)."""
+    inst = _copy_golden(tmp_path)
+    bad = inst / "memory" / "semantic" / "people" / "corrupted.md"
+    bad.write_text(
+        "---\ntype: [unclosed\n\tmess: : :\nfoo: {bad\n---\n\n# Corrupted\n",
+        encoding="utf-8")
+    rep = vi.run_validation(inst)  # must not raise
+    bad_findings = [f for f in rep["findings"]
+                    if f["file"] == "memory/semantic/people/corrupted.md"]
+    assert len(bad_findings) == 1, rep["findings"]
+    assert bad_findings[0]["severity"] == "error"
+    assert vi.exit_code(rep) == 1
+    # Same file on the no-pyyaml fallback path — still no crash.
+    monkeypatch.setattr(frontmatter, "_HAVE_YAML", False)
+    rep2 = vi.run_validation(inst)
+    assert any(f["file"] == "memory/semantic/people/corrupted.md"
+               for f in rep2["findings"])
 
 
 # --- never reads the injection boundary -----------------------------------------------------

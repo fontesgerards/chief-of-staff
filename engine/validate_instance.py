@@ -266,7 +266,9 @@ def _previous_first_seen(manifest_path: Path) -> dict:
         return {}
     latest = prev[-1]
     meta, body = frontmatter.parse(latest)
-    fallback = str(meta.get("date", "")) or None
+    # `date: null` parses to None — guard before str(), or fallback becomes "None".
+    date = meta.get("date")
+    fallback = str(date) if date not in (None, "") else None
     out = {}
     for line in body.splitlines():
         m = FINDING_LINE.match(line.strip())
@@ -299,7 +301,9 @@ def write_manifest(report: dict, manifest_path: Path, today: str | None = None) 
     ]
     if report["findings"]:
         for f in report["findings"]:
-            first_seen = prior.get(f["fingerprint"], today)
+            # `or today`: a prior line with no first_seen AND no usable manifest
+            # date maps to None — default to today rather than printing "None".
+            first_seen = prior.get(f["fingerprint"]) or today
             lines.append(
                 f"- {f['fingerprint']} | {f['severity']} | {f['file']} | "
                 f"{f['check']} | {f['detail']} | first_seen: {first_seen}"
