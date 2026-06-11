@@ -73,5 +73,7 @@ New/updated entity files (strictly **append-only**); changed facts staged as `#f
 
 Changed facts append to `state/corrections.md` (append-only table, no frontmatter); the web sub-pass writes only `sources/web/` via the isolated fetch/extract steps.
 
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

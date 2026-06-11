@@ -76,6 +76,8 @@ If the principal *accepts* a proposal unchanged, that is **positive signal**, no
 
 `#voice`/`#priority`/`#scope` promote into `core/` → **Tier 2 by construction**. `#process`/`#omission`/`#fact` are usually Tier 1 — *unless* their content is source-derived crossing into procedural/core, which forces Tier 2 (§8.1 gate). The autonomy dial in `config.md` sets the Tier-1↔Tier-2 line.
 
+**Migration mapping (one-time schema migration, plan U9):** mechanical schema renames/quoting (`created`→`date`, quoting `covers` ranges — `engine/eval/lib/migrate.py`) = **Tier 1**; fact-line *format* normalization to the canonical `{{fact}} (origin, YYYY-MM-DD, source: …)` form = **Tier 1 format-only** (content, values, origins, dates never change); anything that would change a value, origin, or date = **Tier 2**.
+
 ## 6. Worked examples
 
 - *"This recap is too formal, cut the preamble."* → `[#voice], nudge`. 4th this week → drafts `core/voice.md` + `procedural/drafting.md` edit (Tier 2) → review surface → approve.

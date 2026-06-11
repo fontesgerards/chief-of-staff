@@ -41,5 +41,7 @@ Per processed meeting: an episodic note + updated commitments/loops + any outwar
 
 Commitments and loops append to `state/commitments.md` / `state/open-loops.md` (append-only tables, no frontmatter).
 
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

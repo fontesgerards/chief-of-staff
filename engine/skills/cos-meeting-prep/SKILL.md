@@ -36,5 +36,7 @@ A prep brief per meeting (title, who's attending, objective, context, key remind
 | prep brief (one per meeting) | `engine/templates/meeting-prep-brief.md` | `state/briefs/meeting-prep-YYYY-MM-DD.md` | `type`, `date`, `meeting`, `when`, `entities`, `origin` |
 | capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
 
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

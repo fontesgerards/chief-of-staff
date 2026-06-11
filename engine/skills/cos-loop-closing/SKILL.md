@@ -39,5 +39,7 @@ A loop-closing summary (unassigned / stalled / overdue, with suggested owners/ne
 | outward nudge | `engine/templates/proposal.md` | `queue/outbound/YYYY-MM-DD-<slug>.md` | `type`, `date`, `skill`, `status`, `reversibility`, `tool`, `args_digest` |
 | capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
 
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

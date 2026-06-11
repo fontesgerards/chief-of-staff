@@ -33,5 +33,7 @@ A proposed priority update (Tier-2 approval, to the queue) + a month-in-review d
 
 The `core/current-priorities.md` change is a Tier-2 raw diff in `queue/review/review-<date>.md` (no frontmatter schema) — never a direct write.
 
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

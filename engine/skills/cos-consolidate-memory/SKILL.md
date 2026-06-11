@@ -49,6 +49,20 @@ Branch on this host's `runtime:` row (`git` state) **before the first destructiv
 
 The one-time schema migration runs through this skill and follows the same snapshot-first rule.
 
+## One-time schema migration (KTD3)
+
+**Trigger:** the latest findings manifest carries the sweep's `schema_gate` **"migration pending"** finding (`config.md` `schema:` missing or < 1). Run this once, inside a normal cold-path run; mechanics live in `engine/eval/lib/migrate.py`.
+
+1. **Review surface first** (section above): git `verified` ⇒ the diff is the surface; otherwise the snapshot is **mandatory before the first edit** — never edit-then-snapshot.
+2. **Build the worklist** from a full per-file sweep — the weekly manifest holds only the gate line on a legacy instance, so produce one: `python3 engine/validate_instance.py --instance <path> --manifest state/validation/findings-<date>.md --upgrade-date 1970-01-01` (the epoch date sweeps everything despite the gate). Parse it with `migration_worklist()` (skips the gate line, dedups). Process **per file, smallest-first** — never one mega-edit; context exhaustion on large instances is the expected failure mode.
+3. **Per file, two layers:**
+   - **Mechanical** (`migrate_frontmatter()` semantics: `created:` → `date:` rename; quote bare `covers:` ranges — nothing else) → **Tier 1**, changelog entry. An empty `changes` return means the file is already done — the resume-skip signal.
+   - **Fact lines** — reformat to the canonical `{{fact}} (origin, YYYY-MM-DD, source: …)` form (superseded form appends `valid_until: YYYY-MM-DD`) → **Tier 1 *format-only***: content, values, origins, and dates **never change**. Anything ambiguous (conflicting `created:`+`date:`, an unparseable line, a value that would have to change) → **Tier 2** proposal, file stays on the worklist.
+4. **Commit incrementally** where git is `verified` (every few files — an interrupted run resumes from the worklist, done files no-op); without git, the step-1 snapshot already covers the run.
+5. **Completion — the LAST step:** only when the worklist is empty **and** a fresh sweep is clean, set `schema: 1` in `config.md` frontmatter (the watermark of completion; `is_migrated()` checks it). Never set it early, and **never fabricate a `runtime:` block** — if absent, migrate without it (preflight owns that block).
+
+**Declined:** if the principal rejects the migration diff ⇒ write `migration: declined` + `migration_watermark: <last-transformed-file-or-none>` into `config.md` frontmatter (`mark_declined()`). The weekly sweep then reports **one** suppressed-by-decline line — no weekly retry. Partial state stays visible: files at/below the watermark are already new-format. Only a later **explicit principal request** reverses it (remove the two keys, resume from the worklist).
+
 ## Safety tiers (write-back §5.4)
 - **Tier 1 (auto + changelog):** merges, supersedes, decay, most `#process`/`#fact` promotions.
 - **Tier 2 (propose to queue):** any edit to `core/` (identity/voice/autonomy/priorities), deleting sourced evidence, or carrying **source-derived** content into `procedural`/`core`. Write these to `instance/queue/review/review-<date>.md` as a **raw diff** (not a summary) for explicit approval.
@@ -81,6 +95,7 @@ The one-time schema migration runs through this skill and follows the same snaps
 - **Continuity carve-out:** a week-old `episodic/coaching/` (or `episodic/goals/`) note is **not** decayed or archived — it remains readable by the next coaching/goal-setting run.
 - **Source-derived cap:** a batch with more than `source_derived_cap_per_batch` source-derived `#fact` promotions applies the cap, defers the overflow to next week (logged, oldest-first), and does not bloat the single review diff.
 - **Validation findings:** a stale finding whose check no longer reproduces is skipped and logged "resolved before fix"; a reproducing mechanical fix lands as Tier 1; a reproducing `core/`-touching fix is a Tier-2 proposal; a fingerprint with a pending Tier-2 proposal is not re-proposed.
+- **Schema migration:** an interrupted migration resumes without re-editing done files (empty `changes` ⇒ skip); `schema: 1` lands only after the worklist is empty and a fresh sweep is clean; a declined migration pins `migration: declined` + watermark and the next sweep shows one suppressed line. (Deterministic pins: `engine/eval/lib/test_migration.py`.)
 
 ## Output contract
 | Artifact | Template | Path | Required frontmatter |

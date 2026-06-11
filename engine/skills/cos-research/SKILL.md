@@ -43,5 +43,7 @@ A research digest (so-what first) on the configured channel + **appended** sourc
 
 Raw fetched pages land in `memory/sources/web/` via the no-reasoning fetch step (sweep-excluded; schema'd by the extractor at write time); changed facts append to `state/corrections.md` (no frontmatter).
 
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

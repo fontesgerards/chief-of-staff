@@ -32,5 +32,7 @@ A short, specific coaching note (not a list): the follow-up on last week's exper
 | coaching note | `engine/templates/coaching-note.md` | `memory/episodic/coaching/YYYY-MM-DD.md` | `type`, `date`, `covers`, `origin` |
 | capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
 
+Migration window (`schema:` absent or < 1 in `config.md`): read both old and new frontmatter/fact-line formats, write only the new; this note retires when migration completes.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.
