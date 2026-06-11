@@ -49,5 +49,11 @@ Isolation is only real if the extraction **runs in the restricted profile**. A s
 - **Isolation is real, not inlined:** the extraction runs in the restricted profile (scheduled pass or spawned sub-session), not inside a consumer's memory-capable profile; a consumer (e.g. `cos-meeting-follow-up`) reads staging rather than extracting.
 - **Web two-step:** a fetched page reaches memory only via fetch-to-file (`sources/web/`, no reasoning) → restricted network-off extraction → staging; the network-on fetch step never writes `memory/{core,semantic,procedural}/`.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| source summary | `engine/templates/source-summary.md` | `memory/sources/<kind>/<slug>.md` | `type`, `source_kind`, `date`, `origin`, `captured_by`, `retention_until` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block — carries the staged claim tuples) |
+
 ## Capture footer
 End with `engine/templates/capture-footer.md` — written to `log/runs/` (a staging carve-out the restricted profile permits), so even the isolated extractor's own run is observable.

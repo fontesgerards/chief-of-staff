@@ -27,5 +27,13 @@ A "what worked / what didn't" summary on the configured channel + any **structur
 - A **principal-specific** correction (a preference) is **not** turned into an engine proposal — it's left for the cold path to promote into `procedural/`.
 - The friction review draws on `corrections.md` + the cold-path health report, not run logs alone; a clean week yields a short "no changes proposed" note delivered to `delivery.system-maintenance`.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| maintenance note | `engine/templates/system-maintenance-note.md` | `state/briefs/system-maintenance-YYYY-MM-DD.md` | `type`, `date`, `covers`, `origin` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
+Engine-change proposals append to the review surface `queue/review/review-<date>.md` (raw text, no frontmatter schema).
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

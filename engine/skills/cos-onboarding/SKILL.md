@@ -139,5 +139,21 @@ A populated, scheduled, working `instance/` in the current folder + `CLAUDE.md`/
 
 > **Deferred to product track:** multi-tenant regeneration + data-isolation. Not a v1-of-one concern.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| core identity | `engine/templates/core-identity.md` | `memory/core/identity.md` | `type`, `origin`, `budget_chars` |
+| core operating context | `engine/templates/core-operating-context.md` | `memory/core/operating-context.md` | `type`, `origin`, `budget_chars` |
+| core autonomy | `engine/templates/core-autonomy.md` | `memory/core/autonomy.md` | `type`, `origin`, `budget_chars` |
+| core voice | `engine/templates/core-voice.md` | `memory/core/voice.md` | `type`, `origin`, `budget_chars` |
+| core current priorities | `engine/templates/core-current-priorities.md` | `memory/core/current-priorities.md` | `type`, `origin`, `budget_chars` |
+| glossary | `engine/templates/glossary.md` | `memory/semantic/glossary.md` | `type`, `subtype`, `last_touched`, `origin` |
+| seeded entities | `engine/templates/person.md` (likewise account / project / competitor / concept / relationship) | `memory/semantic/<dir>/<slug>.md` | `type`, `status`, `last_touched`, `relationships`, `confidence`, `origin`, `sources` |
+| procedural seeds (drafting, research, …) | `engine/templates/procedural-skill.md` | `memory/procedural/<skill>.md` | `type`, `skill`, `last_touched`, `origin` |
+| config | `engine/templates/config.md` | `config.md` | `type`, `date` |
+| entry files | `engine/templates/entry-CLAUDE.md` | `CLAUDE.md` + `AGENTS.md` (working folder; no frontmatter) | — |
+| graduation doc | `engine/templates/getting-started.md` | `GETTING-STARTED.md` (working folder; no frontmatter) | — |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

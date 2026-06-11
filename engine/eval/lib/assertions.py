@@ -14,8 +14,10 @@ from pathlib import Path
 
 from . import frontmatter
 
-# The closed origin set from engine/INSTRUCTIONS.md §6.
-VALID_ORIGINS = {"observed", "confirmed", "inferred", "imported"}
+# The closed origin set from engine/INSTRUCTIONS.md §6 (single Python source —
+# schema.py re-exports it; provenance_check.py keeps a self-contained copy that
+# test_schema.py asserts equal).
+VALID_ORIGINS = {"observed", "confirmed", "inferred", "imported", "derived"}
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
 
 JUDGE = "judge"  # reserved key: content assertions handled by the (optional) LLM phase

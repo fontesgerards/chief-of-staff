@@ -33,5 +33,15 @@ A research digest (so-what first) on the configured channel + **appended** sourc
 - No confidential priority text appears in any outbound web query.
 - With no watch list, research skips and proposes a starter list rather than inventing coverage.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| research digest | `engine/templates/research-digest.md` | `state/briefs/research-YYYY-MM-DD.md` | `type`, `date`, `covers`, `origin` |
+| competitor entity | `engine/templates/competitor.md` | `memory/semantic/competitors/<slug>.md` | `type`, `status`, `last_touched`, `relationships`, `confidence`, `origin`, `sources` |
+| concept entity | `engine/templates/concept.md` | `memory/semantic/concepts/<slug>.md` | `type`, `status`, `last_touched`, `relationships`, `confidence`, `origin`, `sources` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
+Raw fetched pages land in `memory/sources/web/` via the no-reasoning fetch step (sweep-excluded; schema'd by the extractor at write time); changed facts append to `state/corrections.md` (no frontmatter).
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

@@ -62,5 +62,16 @@ New/updated entity files (strictly **append-only**); changed facts staged as `#f
 - A non-role/org claim (e.g. a conference talk) is dropped on consume; an instruction-shaped page yields at most a triage-flagged staged correction, no followed instruction.
 - With `person_enrichment.enabled: false` (or datamark-only fallback without opt-in), the sub-pass is skipped entirely.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| person | `engine/templates/person.md` | `memory/semantic/people/<slug>.md` | `type`, `status`, `last_touched`, `relationships`, `confidence`, `origin`, `sources` |
+| account | `engine/templates/account.md` | `memory/semantic/accounts/<slug>.md` | `type`, `status`, `last_touched`, `relationships`, `confidence`, `origin`, `sources` |
+| competitor | `engine/templates/competitor.md` | `memory/semantic/competitors/<slug>.md` | `type`, `status`, `last_touched`, `relationships`, `confidence`, `origin`, `sources` |
+| project | `engine/templates/project.md` | `memory/semantic/projects/<slug>.md` | `type`, `status`, `last_touched`, `relationships`, `confidence`, `origin`, `sources` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
+Changed facts append to `state/corrections.md` (append-only table, no frontmatter); the web sub-pass writes only `sources/web/` via the isolated fetch/extract steps.
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

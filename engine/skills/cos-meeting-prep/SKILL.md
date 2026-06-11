@@ -30,5 +30,11 @@ A prep brief per meeting (title, who's attending, objective, context, key remind
 - The brief lands on the configured `delivery.meeting-prep` channel (default `.md` file under `state/briefs/`).
 - After the principal edits the agenda, a correction record is appended for the cold path.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| prep brief (one per meeting) | `engine/templates/meeting-prep-brief.md` | `state/briefs/meeting-prep-YYYY-MM-DD.md` | `type`, `date`, `meeting`, `when`, `entities`, `origin` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

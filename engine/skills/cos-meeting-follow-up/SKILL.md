@@ -31,5 +31,15 @@ Per processed meeting: an episodic note + updated commitments/loops + any outwar
 - The outward draft is in the principal's voice; facts derived from the transcript carry `origin: observed` and a `source` backlink.
 - No outward message is sent under the default autonomy dial.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| meeting note | `engine/templates/episodic.md` | `memory/episodic/meetings/YYYY-MM-DD-<slug>.md` | `type`, `date`, `entities`, `origin`, `sources` |
+| decision note | `engine/templates/episodic.md` | `memory/episodic/decisions/YYYY-MM-DD-<slug>.md` | `type`, `date`, `entities`, `origin`, `sources` |
+| outward follow-up | `engine/templates/proposal.md` | `queue/outbound/YYYY-MM-DD-<slug>.md` | `type`, `date`, `skill`, `status`, `reversibility`, `tool`, `args_digest` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
+Commitments and loops append to `state/commitments.md` / `state/open-loops.md` (append-only tables, no frontmatter).
+
 ## Capture footer
 End with `engine/templates/capture-footer.md`.

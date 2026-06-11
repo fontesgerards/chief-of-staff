@@ -56,5 +56,13 @@ mutates: true             # the ONLY skill allowed to edit/delete memory
 - **Continuity carve-out:** a week-old `episodic/coaching/` (or `episodic/goals/`) note is **not** decayed or archived — it remains readable by the next coaching/goal-setting run.
 - **Source-derived cap:** a batch with more than `source_derived_cap_per_batch` source-derived `#fact` promotions applies the cap, defers the overflow to next week (logged, oldest-first), and does not bloat the single review diff.
 
+## Output contract
+| Artifact | Template | Path | Required frontmatter |
+|---|---|---|---|
+| changelog + health report | `engine/templates/consolidation-changelog.md` | `log/maintenance/YYYY-MM-DD.md` | `type`, `date`, `origin` |
+| capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
+
+Tier-2 proposals are raw diffs appended to `queue/review/review-<date>.md` (no frontmatter schema); memory edits follow the edited file's own type contract (`engine/eval/lib/schema.py`).
+
 ## Capture footer
 End with the standard capture footer (`engine/templates/capture-footer.md`) — yes, even the cold path captures its own run for observability.
