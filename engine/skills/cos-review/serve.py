@@ -79,14 +79,21 @@ def _make_handler(instance_dir, date):
     return Handler, state
 
 
-def serve(instance_dir, date, host="127.0.0.1", port=0):
+def serve(instance_dir, date, host="127.0.0.1", port=0, open_browser=False):
     if os.environ.get("COS_SCRIPT_EXEC_VERIFIED") != "1":
         sys.exit("refusing to start: COS_SCRIPT_EXEC_VERIFIED != 1 "
                  "(host's runtime row does not verify script_exec)")
     handler, state = _make_handler(instance_dir, date)
     httpd = ThreadingHTTPServer((host, port), handler)
     bound = httpd.server_address
-    print(f"http://{bound[0]}:{bound[1]}/", flush=True)  # skill relays this URL
+    url = f"http://{bound[0]}:{bound[1]}/"
+    print(url, flush=True)  # skill relays this URL
+    if open_browser:
+        import webbrowser
+        try:
+            webbrowser.open(url)
+        except Exception:
+            pass
     try:
         while state["running"]:
             httpd.handle_request()
@@ -103,5 +110,7 @@ if __name__ == "__main__":
     ap.add_argument("instance_dir")
     ap.add_argument("date")
     ap.add_argument("--port", type=int, default=0)
+    ap.add_argument("--open", action="store_true", dest="open_after",
+                    help="open the dashboard URL in the default browser once bound")
     args = ap.parse_args()
-    serve(args.instance_dir, args.date, port=args.port)
+    serve(args.instance_dir, args.date, port=args.port, open_browser=args.open_after)
