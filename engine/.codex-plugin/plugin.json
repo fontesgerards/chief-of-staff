@@ -1,6 +1,6 @@
 {
   "name": "chief-of-staff",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A personal AI Chief of Staff — local-first, plain-text memory that prepares you for what's ahead, closes loops, coaches you, and gets sharper over time. Propose-never-act by default.",
   "author": {
     "name": "Fred Fontes"

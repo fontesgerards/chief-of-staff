@@ -21,7 +21,7 @@ chief-of-staff/                         ← publish THIS repo to GitHub
 
 1. The GitHub URL is already set to `fontesgerards/chief-of-staff` in all three manifests + `marketplace.json`.
 2. Push this repo to the **public** repo `fontesgerards/chief-of-staff`.
-3. (Optional) Tag a release matching the version in the manifests (`engine/.claude-plugin/plugin.json` — currently `0.6.0`): `git tag v0.6.0 && git push --tags`.
+3. (Optional) Tag a release matching the version in the manifests (`engine/.claude-plugin/plugin.json` — currently `0.7.0`): `git tag v0.7.0 && git push --tags`.
 
 ## How a user installs (Claude Code)
 

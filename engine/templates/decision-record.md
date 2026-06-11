@@ -1,0 +1,63 @@
+# Decision record — `queue/review/decisions-<date>.jsonl`
+
+> The **append-only** round-trip format between the rendered decision dashboard and
+> the `/cos-review` ingest phase. One JSON object per line. Written either by the
+> dashboard's **Export decisions** button (works everywhere) or, on hosts with
+> verified `script_exec`, by the optional localhost write-back server — both emit
+> the identical shape, so ingest is agnostic to how a line got here.
+>
+> Append-only matches the inward-write ethos (`INSTRUCTIONS.md` §2): nothing is
+> destroyed, so a bad or duplicate decision can't silently corrupt the queue.
+> Ingest is idempotent — each `card_id` is applied once (the run log is the ledger).
+
+## Line schema
+
+```json
+{
+  "card_id": "outbound:2026-06-11-reply-tony",
+  "kind": "outbound",
+  "source": "queue/outbound/2026-06-11-reply-tony.md",
+  "decision": "send",
+  "text": "optional — revised draft (edit) or answer text (answer)",
+  "ts": "2026-06-11T14:32:00Z"
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `card_id` | for an action: `<kind>:<stable-slug>` (the idempotency key, survives regeneration). For a `note`: the **target** — a card id, `topic:<name>`, or `all:<tab>`. |
+| `kind` | `outbound` \| `question` \| `memory` (omitted on `note`). |
+| `source` | relative path / identifier the card came from. |
+| `decision` | `send`/`approve`, `edit`, `reject`, `answer`, `dismiss`, or `note` (free-text feedback). |
+| `text` | revised draft (`edit`), the answer (`answer`), or the feedback (`note`). |
+| `scope` | `note` only: `card` \| `topic` \| `all` — how wide the feedback applies. |
+| `tab` | `note` only: which board tab it was raised from. |
+| `ts` | ISO-8601 timestamp the decision was made. |
+
+### Notes (the floating feedback bar)
+
+A `note` is free-text guidance the principal aims at a card, a topic, or everything in a tab —
+the persistent bottom bar in the dashboard ("Talking to: …", Broader/Narrower scope). It is
+**additive** (many notes may target the same card), unlike actions (one per card; the latest wins).
+
+On ingest, each proposal in the note's scope gets the text appended to its `## Notes` section and its
+status flipped to `feedback` — moving it to the **Feedback** tab until the agent's next pass revises
+the draft to satisfy the feedback and re-presents it (back to **To review**). The dashboard also shows
+the feedback inline on the card immediately. The loop: feedback captured → item revised → re-surfaced.
+
+```json
+{"card_id": "topic:Sponsorships", "decision": "note", "scope": "topic", "tab": "review",
+ "text": "route all unknown sponsorship asks to Sydney unless already picked up", "ts": "2026-06-11T14:40:00Z"}
+```
+
+## How ingest routes each decision (`/cos-review` Phase B)
+
+- **`send` / `approve`** → set the proposal's `status: approved` (the outbound gate + autonomy dial
+  still govern the actual send — the dashboard never sends). Unchanged accept = positive signal,
+  **no** correction (`INSTRUCTIONS.md` §4).
+- **`edit`** → rewrite the proposal's text + Action block from `text`, **regenerate `args_digest`**
+  (`review_lib.py regen-digest`) so the gate still matches, and append a `#voice`/`#process`
+  correction (`state/corrections.md`).
+- **`reject`** → `status: rejected` + a correction.
+- **`answer`** → record the answer for the owning skill; mark the question resolved.
+- **`dismiss`** → mark the question dismissed.

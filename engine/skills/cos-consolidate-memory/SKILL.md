@@ -49,6 +49,10 @@ Branch on this host's `runtime:` row (`git` state) **before the first destructiv
 
 The one-time schema migration runs through this skill and follows the same snapshot-first rule.
 
+## Apply dashboard-approved Tier-2 diffs (the review loop) — first destructive step
+
+A Tier-2 memory change the principal **approved on the dashboard** is staged, not applied — the dashboard never edits memory; **this** run applies it. As the first destructive step (so it's inside the Review-surface branch above — git commit or snapshot-first), consume each `queue/review/memory/approved/*.diff` (moved there by `/cos-review resolve-memory`): apply the diff to its target memory file as a Tier-2 edit the principal already approved, changelog it (before/after + `approved via dashboard`), then **delete the consumed diff**. Ignore `queue/review/memory/rejected/*` (archive/prune per retention). Re-running is safe — an already-applied diff is gone, so it no-ops. This closes the loop: cold path **stages** the proposal → dashboard **approves** → cold path **applies**.
+
 ## One-time schema migration (KTD3)
 
 **Trigger:** the latest findings manifest carries the sweep's `schema_gate` **"migration pending"** finding (`config.md` `schema:` missing or < 1). Run this once, inside a normal cold-path run; mechanics live in `engine/eval/lib/migrate.py`.
@@ -65,7 +69,7 @@ The one-time schema migration runs through this skill and follows the same snaps
 
 ## Safety tiers (write-back §5.4)
 - **Tier 1 (auto + changelog):** merges, supersedes, decay, most `#process`/`#fact` promotions.
-- **Tier 2 (propose to queue):** any edit to `core/` (identity/voice/autonomy/priorities), deleting sourced evidence, or carrying **source-derived** content into `procedural`/`core`. Write these to `instance/queue/review/review-<date>.md` as a **raw diff** (not a summary) for explicit approval.
+- **Tier 2 (propose to queue):** any edit to `core/` (identity/voice/autonomy/priorities), deleting sourced evidence, or carrying **source-derived** content into `procedural`/`core`. Write each as an **individual raw-diff file** `instance/queue/review/memory/<date>-<slug>.diff` (not a summary) — that folder is the canonical Tier-2 staging and is what the decision dashboard renders as **Memory Δ** cards (`/cos-review`). Also list them in `queue/review/review-<date>.md` for non-dashboard review. Nothing in `core/` is written until the principal approves on either surface.
 - `core/` budget pressure: if a promotion would exceed a `core/` file's `budget_chars`, **consolidate/supersede before adding** (a char-count helper flags over-budget; it proposes consolidation, it is not a hard runtime block).
 
 ## Health metric + low-volume mode (write-back §7 / §7.1)
@@ -82,7 +86,7 @@ The one-time schema migration runs through this skill and follows the same snaps
 ## Outputs
 1. `instance/log/maintenance/<date>.md` from `engine/templates/consolidation-changelog.md` — the changelog (every operation, before/after + tier) **and** the health report. Keep the health-report table shape stable: `cos-system-maintenance` machine-reads it.
 2. A git commit of `instance/` where git is `verified` (the diff is the review surface); otherwise the dated snapshot + the changelog's before/after file list ("Review surface" above).
-3. Tier-2 proposals appended to `instance/queue/review/review-<date>.md`.
+3. Tier-2 proposals as individual raw-diff files in `instance/queue/review/memory/<date>-<slug>.diff` (the dashboard's Memory Δ cards), also listed in `queue/review/review-<date>.md`. Dashboard-approved diffs from a prior run are applied this run and removed (the loop above).
 4. The health report **is the §Health report section** of that maintenance file (per-tag rate or "insufficient data", promotion-survival, mistagging/`#other` flags, source-derived-cap status) — not a separate file.
 5. Backup commit per `instance/.backup-instructions.md` cadence.
 
@@ -96,6 +100,7 @@ The one-time schema migration runs through this skill and follows the same snaps
 - **Source-derived cap:** a batch with more than `source_derived_cap_per_batch` source-derived `#fact` promotions applies the cap, defers the overflow to next week (logged, oldest-first), and does not bloat the single review diff.
 - **Validation findings:** a stale finding whose check no longer reproduces is skipped and logged "resolved before fix"; a reproducing mechanical fix lands as Tier 1; a reproducing `core/`-touching fix is a Tier-2 proposal; a fingerprint with a pending Tier-2 proposal is not re-proposed.
 - **Schema migration:** an interrupted migration resumes without re-editing done files (empty `changes` ⇒ skip); `schema: 1` lands only after the worklist is empty and a fresh sweep is clean; a declined migration pins `migration: declined` + watermark and the next sweep shows one suppressed line. (Deterministic pins: `engine/eval/lib/test_migration.py`.)
+- **Dashboard memory loop:** a Tier-2 edit writes one `queue/review/memory/<date>-<slug>.diff` (rendered as a Memory Δ card); after the principal approves it on the dashboard (moved to `…/approved/`), the next run applies it to the target file, changelogs "approved via dashboard", and deletes the diff; a re-run no-ops; a rejected diff in `…/rejected/` is never applied.
 
 ## Output contract
 | Artifact | Template | Path | Required frontmatter |
@@ -103,7 +108,7 @@ The one-time schema migration runs through this skill and follows the same snaps
 | changelog + health report | `engine/templates/consolidation-changelog.md` | `log/maintenance/YYYY-MM-DD.md` | `type`, `date`, `origin` |
 | capture footer | `engine/templates/capture-footer.md` | `log/runs/<date>-<run>.md` | (appended block) |
 
-Tier-2 proposals are raw diffs appended to `queue/review/review-<date>.md` (no frontmatter schema); memory edits follow the edited file's own type contract (`engine/eval/lib/schema.py`).
+Tier-2 proposals are individual raw-diff files in `queue/review/memory/<date>-<slug>.diff` (no frontmatter schema; the dashboard's Memory Δ cards), also listed in `queue/review/review-<date>.md`; memory edits follow the edited file's own type contract (`engine/eval/lib/schema.py`).
 
 ## Capture footer
 End with the standard capture footer (`engine/templates/capture-footer.md`) — yes, even the cold path captures its own run for observability.

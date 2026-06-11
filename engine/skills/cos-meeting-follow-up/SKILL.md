@@ -18,7 +18,7 @@ mutates: true             # hot-path: APPENDS to episodic/ + state/ (never destr
 5. **Extract commitments → state.** Append to `state/commitments.md` (who/what/due/source).
 6. **Open/close loops → state.** Update `state/open-loops.md`; **stamp `Last update` = today** on any loop this meeting opened or advanced (this is the movement signal `cos-loop-closing` reads for staleness). New loops get `Opened` and `Last update` set to today.
 7. **Note decisions** → `memory/episodic/decisions/` if any were made.
-8. **Outward items → queue.** Any follow-up email/message is a **proposal** in `queue/outbound/` — exact text, **in the principal's voice** (load `core/voice.md` + `procedural/drafting.md`) — surfaced in the review surface. Never sent.
+8. **Outward items → queue.** Any follow-up email/message is a **proposal** in `queue/outbound/` — exact text, **in the principal's voice** (load `core/voice.md` + `procedural/drafting.md`) — surfaced in the review surface. Never sent. **Fill the dashboard display fields** (`engine/templates/proposal.md`) so it renders as a rich card: `topic:` = the account/project the meeting concerns (else the meeting title); `source:` = `meeting`; `context:` = one line on what this follow-up is; `## What happened` = the meeting outcome that triggered it (decision, ask, commitment); `## Why this is in the sweep` = why it surfaced now (e.g. "you committed to send the deck", "they're waiting on pricing").
 
 ## Output
 Per processed meeting: an episodic note + updated commitments/loops + any outward proposals in the queue. Routing is the point: inward facts auto-append, outward comms go to the queue. On a day with nothing to process, no output.
