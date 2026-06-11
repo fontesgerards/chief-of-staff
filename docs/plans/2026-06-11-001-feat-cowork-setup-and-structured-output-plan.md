@@ -1,7 +1,7 @@
 ---
 title: "feat: Cowork-first setup and structured-output consistency"
 type: feat
-status: active
+status: completed
 date: 2026-06-11
 depth: deep
 ---
