@@ -37,7 +37,7 @@ Run the extractor with a **dedicated restricted settings file** (don't put these
 - Optional third layer — a `PreToolUse` hook that `exit 2`s on any `Write`/`Edit` whose path is under `instance/memory/` (custom logic, also unbypassable vs the model).
 - Note the **allow** carve-outs: the extractor *may* write `memory/sources/` summaries + `log/runs/` staging, but nothing else under `memory/`.
 
-**Cowork caveat:** confirm Cowork honors settings.json `permissions`/`sandbox` the same as the CLI (likely, but undocumented as of 2026-06). If it does **not**, run the extraction step itself via the Claude Code CLI or Codex sandbox (both enforce it), and let Cowork drive the rest.
+**Cowork caveat:** confirm Cowork honors settings.json `permissions`/`sandbox` the same as the CLI (likely, but undocumented as of 2026-06). If it does **not**, run the extraction step itself via the Claude Code CLI or Codex sandbox (both enforce it), and let Cowork drive the rest. *Update 2026-06-11:* Cowork does **NOT** fire settings.json hooks (anthropics/claude-code#63360) — apply the same skepticism to `permissions`/`sandbox` until the preflight `runtime:` row verifies them per-host; the extraction-step fallback above stands.
 
 ## Codex
 
@@ -88,14 +88,14 @@ Three layers, and you want all three — the gate alone is necessary, not suffic
 | Layer | Mechanism | CLI | Cowork | Codex |
 |---|---|---|---|---|
 | **1. Read-only OAuth scopes** | provider-enforced (the agent never holds the write capability) | ✅ | ✅ **primary posture** | ✅ |
-| **2. Per-proposal payload-bound gate** | `PreToolUse` hook (`engine/eval/hooks/outbound_gate.py`) | ✅ full | ⚠️ likely, **unverified (2026-06)** | ❌ no hook → approval-policy |
+| **2. Per-proposal payload-bound gate** | `PreToolUse` hook (`engine/eval/hooks/outbound_gate.py`) | ✅ full | ❌ **does not fire** (2026-06-11, anthropics/claude-code#63360) | ❌ no hook → approval-policy |
 | **3. Bash-egress deny** | OS sandbox network/exec (Seatbelt/bubblewrap) | ✅ | ⚠️ unverified | ✅ `network.enabled=false` |
 
 ### Claude Code (the reference implementation)
 Wire the gate via `.claude/settings.json` (the `PreToolUse` block in `engine/eval/hooks/settings.example.json`): matcher `mcp__.*` invokes `outbound_gate.py`, which classifies outward-vs-read from `outbound_gate.config.json`, reads the autonomy dial from `instance/config.md`, and denies (`exit 2`) anything that isn't a payload-matched approved proposal at a permissive dial. **Fail-closed** — unreadable config/queue/dial denies. `cos-onboarding` writes this by default (Step 7).
 
 ### Cowork
-Connectors are wired from the plugin's Connectors tab, and the read-only/write choice is made at the **OAuth consent screen** — so **layer 1 carries the weight**: connect read-only and the agent *cannot* mutate, hook or no hook. The gate hook may also fire (same engine) but is **unverified as of 2026-06**; do not depend on it. Guidance: keep outward connectors read-only on Cowork; the principal executes approved sends.
+Connectors are wired from the plugin's Connectors tab (bundled) or Customize → Connectors (built-ins), and the read-only/write choice is made at the **OAuth consent screen** — so **layer 1 carries the weight**: connect read-only and the agent *cannot* mutate, hook or no hook. *Update 2026-06-11:* the gate hook does **NOT** fire on Cowork — settings.json hooks aren't honored there (anthropics/claude-code#63360); `cos-preflight` records `outbound_gate: unavailable` in the host's `runtime:` row. Layer 1 is therefore the **enforcement floor**, not defense-in-depth: keep outward connectors read-only on Cowork; the principal executes approved sends.
 
 ### Codex
 No pre-tool hook, so automated payload-bound matching isn't reachable the same way. Enforce with a **restricted acting permissions-profile** (parallels the extractor profile above) that either omits the mutating MCP server or uses Codex's **approval policy** for per-tool human approval; Codex **fails closed** (refuses to run if it can't enforce). What you get is *read-only scopes + human approval* — a **coarser** gate than the CLI's (it confirms a human approved the call, not that the payload equals the approved one).

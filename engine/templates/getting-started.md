@@ -13,8 +13,9 @@
 
 - **Memory:** seeded — {{which core/ files, roughly how many people/accounts}}.
 - **Connectors:** {{per connector: ✅ connected & verified · ⏳ pending your OAuth click · ⛔ blocked (admin) — with the one action to finish each. NEVER list a pending connector as connected.}}
+  - Want to connect more later? Meeting recordings and Slack live in the **chief-of-staff plugin's Connectors tab**; Gmail / Calendar / Drive connect under **Customize → Connectors** (they're Claude built-ins, not plugin entries). The full map is in the engine's `methods/connectors.md`.
 - **Voice:** captured from your real messages.
-- **Runs on its own:** {{scheduled skills + cadence from config.md schedules, by real status — ✅ live (actually firing) · 🔧 needs one setup step (status: manual — name the click, e.g. "add it in the Cursor dashboard") · 📝 recorded only, not yet running (status: intent-only). NEVER describe a manual/intent-only schedule as already running.}}.
+- **Runs on its own:** {{scheduled skills + cadence from config.md schedules, by real status — ✅ live (actually firing — and if this host's runtime row says the registration expires, say so in the status itself, e.g. "live (expires ~7 days after registration — I'll prompt you to re-arm)") · 🔧 needs one setup step (status: manual — name the click, e.g. "add it in the Cursor dashboard") · 📝 recorded only, not yet running (status: intent-only). NEVER describe a manual/intent-only schedule as already running, and never show an expiring schedule as plain "live" without its expiry caveat.}}.
 
 ## How to use it day-to-day
 
