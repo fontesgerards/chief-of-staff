@@ -14,6 +14,7 @@ mutates: true             # the ONLY skill allowed to edit/delete memory
 - `instance/state/corrections.md` (status: open)
 - `instance/log/runs/*.md` since last consolidation (captures)
 - `instance/state/{open-loops,commitments,pending-questions}.md`
+- `instance/state/validation/findings-*.md` (latest — the weekly sweep's manifest; see "Consume validation findings")
 - `instance/config.md` → `write_back.*`, `autonomy.memory_tier_line`
 
 ## The five operations
@@ -23,6 +24,17 @@ mutates: true             # the ONLY skill allowed to edit/delete memory
 3. **Supersede, don't overwrite** — a stale fact gets `valid_until` stamped and the new fact appended. History is preserved; you can always see what was true and when.
 4. **Decay** — age `last_touched`/`confidence`; flag + archive unreinforced low-confidence facts; dismiss corrections older than `write_back.decay_weeks` that never clustered. **Never decay/archive continuity records** — `episodic/coaching/` and `episodic/goals/` are read by their skills' *next* run; they are dated narrative, not scored facts, and stay readable indefinitely.
 5. **Prune** — move closed loops / resolved questions out of `state/` into `memory/episodic/`.
+
+## Consume validation findings (the sweep's fixer — KTD7)
+
+The weekly `cos-system-maintenance` sweep (`engine/validate_instance.py`) writes `state/validation/findings-<date>.md` but never fixes anything; **this** run is where findings get fixed.
+
+1. Read the **latest** `state/validation/findings-*.md`. Each line carries a stable fingerprint, severity, file, check, detail, and `first_seen:`.
+2. **Re-run the finding's deterministic check against the current file first** — the manifest may be days stale and the file may have changed since the sweep. If it no longer reproduces, **skip it and log "resolved before fix"** in the changelog (never "fix" a defect that's already gone).
+3. Tier-classify what still reproduces:
+   - **Mechanical frontmatter fixes** (missing/renamed required keys, an `origin` outside the closed enum with an unambiguous correct value, a dangling-wikilink rename) → **Tier 1**: apply + changelog entry.
+   - **Anything touching `core/` or changing fact content** → **Tier 2**: raw diff to `queue/review/review-<date>.md` for approval.
+4. **Fingerprint dedup:** a fingerprint already actioned and still open (a Tier-2 proposal pending approval) is **not re-proposed** — note it in the changelog as "open, awaiting approval" and move on.
 
 ## Safety tiers (write-back §5.4)
 - **Tier 1 (auto + changelog):** merges, supersedes, decay, most `#process`/`#fact` promotions.
@@ -55,6 +67,7 @@ mutates: true             # the ONLY skill allowed to edit/delete memory
 - The health report renders; a sub-floor tag shows "insufficient data".
 - **Continuity carve-out:** a week-old `episodic/coaching/` (or `episodic/goals/`) note is **not** decayed or archived — it remains readable by the next coaching/goal-setting run.
 - **Source-derived cap:** a batch with more than `source_derived_cap_per_batch` source-derived `#fact` promotions applies the cap, defers the overflow to next week (logged, oldest-first), and does not bloat the single review diff.
+- **Validation findings:** a stale finding whose check no longer reproduces is skipped and logged "resolved before fix"; a reproducing mechanical fix lands as Tier 1; a reproducing `core/`-touching fix is a Tier-2 proposal; a fingerprint with a pending Tier-2 proposal is not re-proposed.
 
 ## Output contract
 | Artifact | Template | Path | Required frontmatter |
