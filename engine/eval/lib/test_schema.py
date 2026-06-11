@@ -22,6 +22,7 @@ NON_FRONTMATTER_TEMPLATES = {
     "engine/templates/capture-footer.md",
     "engine/templates/entry-CLAUDE.md",
     "engine/templates/getting-started.md",
+    "engine/templates/decision-record.md",   # JSONL schema doc for the decision dashboard
 }
 
 

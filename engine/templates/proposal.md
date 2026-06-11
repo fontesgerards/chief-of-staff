@@ -6,9 +6,15 @@ status: pending          # pending | approved | rejected | sent
 reversibility: reversible   # reversible | irreversible
 tool:                    # outward MCP tool this authorizes, e.g. mcp__claude_ai_Google_Calendar__create_event. Blank = principal-only send (the gate never auto-executes it).
 args_digest:             # SHA-256 of the canonicalized Action args below. Regenerate (engine/eval/lib/outbound.py: digest) whenever the action changes — a stale digest fails the gate match by design.
+# --- decision-dashboard display (optional; /cos-review reads these) ---
+topic:                   # groups the card on the board, e.g. Sponsorships. Default: General.
+source:                  # eyebrow label, e.g. inbox | slack | calendar. Default: derived from `tool`.
+context:                 # one-line lede shown under the headline. Default: the intro paragraph below.
 ---
 
 # Proposal: {{one-line what}}
+
+{{One- or two-sentence context lede — what this is, in plain terms. Becomes the card's `context`.}}
 
 - **What:** the action (send / post / schedule / update).
 - **To whom:** recipient(s) / system.
@@ -18,6 +24,15 @@ args_digest:             # SHA-256 of the canonicalized Action args below. Regen
 
 - **Why:** the reasoning / trigger.
 - **Reversibility:** reversible | irreversible (irreversible always needs explicit approval regardless of dial).
+
+## What happened
+
+{{The situation / policy that triggered this — the dashboard's "What happened" block. Optional.}}
+
+## Why this is in the sweep
+
+- {{why this surfaced — one bullet}}
+- {{another, if useful}}
 
 ## Action (machine-readable — the outward-action gate matches against this)
 
