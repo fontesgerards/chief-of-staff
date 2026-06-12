@@ -99,6 +99,11 @@ ARTIFACT_TYPES = {
         "required_keys": ["type", "source_kind", "date", "origin", "captured_by", "retention_until"],
     },
     # --- briefs / run artifacts -----------------------------------------------
+    "daily-brief": {
+        "template": "engine/templates/daily-brief.md",
+        "path_pattern": "state/briefs/daily-brief-YYYY-MM-DD.md",
+        "required_keys": ["type", "date", "covers", "origin"],
+    },
     "loop-closing-brief": {
         "template": "engine/templates/loop-closing-brief.md",
         "path_pattern": "state/briefs/loop-closing-YYYY-MM-DD.md",

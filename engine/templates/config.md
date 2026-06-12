@@ -40,6 +40,14 @@ autonomy:
   memory_tier_line: default  # sets the Tier-1↔Tier-2 boundary for cold-path writes
 ```
 
+## Locale
+```yaml
+# Set at onboarding (cos-preflight confirms). Every day-of-week and time-window rule
+# (the daily brief's Fri/Sat skip, "next 24h", the calendar audit's lookahead,
+# "approaching deadline") evaluates against THIS timezone — never UTC, never the host's.
+timezone: {{IANA}}             # e.g. America/New_York
+```
+
 ## Connectors
 ```yaml
 # NAMES + STATUS ONLY. No token/secret/credential/key field is permitted here — secrets live in the
