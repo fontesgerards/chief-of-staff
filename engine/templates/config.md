@@ -102,6 +102,14 @@ delivery:
   system-maintenance: {channel: file, path: "state/briefs/"}
 ```
 
+## Calendar audit
+```yaml
+calendar_audit:
+  lookahead_days: 4          # how far ahead cos-calendar-audit scans
+  back_to_back_hours: 3      # a continuous run of meetings at/over this span is flagged
+  min_break_minutes: 30      # the smallest gap that counts as a break (run + no-break checks)
+```
+
 ## Loop-closing
 ```yaml
 loop_closing:
