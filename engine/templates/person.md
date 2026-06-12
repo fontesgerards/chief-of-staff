@@ -10,6 +10,8 @@ role:                     # their role / title
 org:                      # [[account]] they belong to
 last_enriched:            # YYYY-MM-DD of the last web-enrichment pass — distinct from last_touched (which any mention bumps). Blank = never enriched. Drives the staleness gate in cos-entity-enrichment.
 enrich:                   # blank/true = eligible for web enrichment; false = opt out (never web-searched)
+key:                      # true = a key relationship cos-loop-closing watches for staleness ("going quiet"); blank/false = not watched. Opt-in: seeded at onboarding or promoted by a correction.
+last_contacted:           # YYYY-MM-DD of the last REAL contact — stamped by cos-inbox-sweep (principal answered their thread, or a sent draft). Distinct from last_touched: a brief mentioning them is not contact.
 ---
 
 # {{Name}}

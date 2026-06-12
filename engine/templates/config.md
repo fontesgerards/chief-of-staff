@@ -40,6 +40,16 @@ autonomy:
   memory_tier_line: default  # sets the Tier-1↔Tier-2 boundary for cold-path writes
 ```
 
+## Locale
+```yaml
+# Set at onboarding (cos-preflight confirms). Every day-of-week and time-window rule
+# (the daily brief's Fri/Sat skip, "next 24h", the calendar audit's lookahead,
+# "approaching deadline") evaluates against THIS timezone once set — not UTC, not the host's.
+# While unset (pre-onboarding), fall back to the HOST's local clock and note the
+# assumption in the run capture — never silently use UTC.
+timezone: {{IANA}}             # e.g. America/New_York
+```
+
 ## Connectors
 ```yaml
 # NAMES + STATUS ONLY. No token/secret/credential/key field is permitted here — secrets live in the
@@ -66,6 +76,8 @@ schedules:
   extract-from-sources: {cadence: daily, at: "17:30", status: intent-only, registered_via: "", profile: restricted}   # isolated pass — stages the day's sources BEFORE the consumers below; MUST register with the restricted extractor profile (engine/docs/write-isolation-config.md), never the normal one
   meeting-prep:        {cadence: daily,   at: "17:00", status: intent-only, registered_via: ""}
   meeting-follow-up:   {cadence: daily,   at: "18:00", status: intent-only, registered_via: ""}   # end of day; inverse of prep
+  inbox-sweep:         {cadence: daily,   at: "18:15", status: intent-only, registered_via: ""}   # after follow-up (which wins dedup) and the 17:30 extract pass it consumes
+  calendar-audit:      {cadence: daily,   at: "08:30", status: intent-only, registered_via: ""}   # morning-of; scans the next calendar_audit.lookahead_days
   entity-enrichment:   {cadence: daily,   at: "18:30", status: intent-only, registered_via: ""}   # after the 17:30 extract pass it consumes
   loop-closing:        {cadence: weekly,  day: mon,    status: intent-only, registered_via: ""}
   research:            {cadence: weekly,  day: mon,    status: intent-only, registered_via: ""}
@@ -84,6 +96,7 @@ schedules:
 delivery:
   default:            {channel: file, path: "state/briefs/"}
   meeting-prep:       {channel: file, path: "state/briefs/"}
+  inbox-sweep:        {channel: file, path: "state/briefs/"}
   loop-closing:       {channel: file, path: "state/briefs/"}
   research:           {channel: file, path: "state/briefs/"}
   coaching:           {channel: file, path: "state/briefs/"}
@@ -91,16 +104,28 @@ delivery:
   system-maintenance: {channel: file, path: "state/briefs/"}
 ```
 
+## Calendar audit
+```yaml
+calendar_audit:
+  lookahead_days: 4          # how far ahead cos-calendar-audit scans
+  back_to_back_hours: 3      # a continuous run of meetings at/over this span is flagged
+  min_break_minutes: 30      # the smallest gap that counts as a break (run + no-break checks)
+  large_event_attendee_threshold: 10   # events with this many attendees or more are skipped by the missing-critical-participant check (all-hands noise)
+```
+
 ## Loop-closing
 ```yaml
 loop_closing:
   stalled_after_days: 7      # a loop with no movement (open-loops.md Last update) older than this is flagged stalled
+  relationship_stale_after_days: 28   # a key: true person with no real contact (meeting / sent / last_contacted) in this window is flagged "going quiet"
 ```
 
 ## Queue lifecycle
 ```yaml
 queue:
-  retain_resolved_days: 14   # approved/rejected proposals move to log/ or are deleted after this window
+  retain_resolved_days: 14   # resolved proposals (approved/rejected/SENT) retire by MOVING to log/ after this
+                             # window — never delete: sent proposals are going-quiet contact evidence that must
+                             # outlive this window (loop_closing.relationship_stale_after_days reads them for 28d)
 ```
 
 ## Person enrichment

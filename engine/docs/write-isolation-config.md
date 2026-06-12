@@ -75,6 +75,10 @@ The restricted extractor profile has **network off** (`network.enabled = false` 
 
 If a runtime cannot fetch-without-loading (no file-piping tool, body always enters context), research falls back to **datamark-discipline-only** for that fetch and must say so — it's weaker than OS isolation, and the append-only + stage-changes rule is then the only guard.
 
+## Calendar — the structural/free-text carve-out
+
+Calendar *arithmetic* (overlap, back-to-back, break detection — `cos-calendar-audit`, `cos-meeting-prep`) needs exact values that tuple-staging would mangle, so consumer skills may read **machine-typed event fields directly**: start/end timestamps (ISO-8601) and response status (validated against the accepted/declined/tentative enum). **Attendee addresses are semi-trusted** — user-supplied free text in every major calendar API — and must validate against addr-spec syntax before use (reject prose-shaped values). **Free-text fields** (title / description / location) stay fully untrusted: they reach a memory-capable context only via the isolated extractor's staging, or as datamarked display strings that are rendered, never followed. The authoritative wording lives in `engine/skills/cos-extract-from-sources/SKILL.md` (invocation contract).
+
 ## Verification (the U6 test, made real)
 
 From inside a restricted extractor run, attempt `echo x > instance/memory/test.md`:
