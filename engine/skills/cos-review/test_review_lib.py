@@ -117,6 +117,79 @@ def test_resolve_memory_approve_and_reject(tmp_path):
     assert review_lib.resolve_memory(inst, "memory:promote-willie", "approve") is None
 
 
+def test_add_question_creates_table_and_surfaces_card(tmp_path):
+    inst = _instance(tmp_path)
+    qfile = inst / "state" / "pending-questions.md"
+    cid = review_lib.add_question(qfile, "Route unknown sponsors to Sydney?",
+                                  why="policy is ambiguous", ts="2026-06-11T09:00:00Z")
+    assert cid.startswith("question:")
+    # surfaces as an answerable To-review card
+    card = next(c for c in review_lib.collect_cards(inst) if c.kind == "question")
+    assert card.card_id == cid and card.tab == "review"
+    assert card.title == "Route unknown sponsors to Sydney?"
+    assert card.fields["context"] == "policy is ambiguous" and card.date == "2026-06-11"
+    # idempotent on the question text
+    review_lib.add_question(qfile, "Route unknown sponsors to Sydney?")
+    assert len([c for c in review_lib.collect_cards(inst) if c.kind == "question"]) == 1
+
+
+def test_add_question_appends_to_existing_table(tmp_path):
+    inst = _instance(tmp_path)
+    qfile = inst / "state" / "pending-questions.md"
+    qfile.write_text(
+        "# Pending questions\n\n| Question | Why it matters | Raised | Status |\n"
+        "|---|---|---|---|\n| First? | a | 2026-06-10 | open |\n\n## Answers\n", encoding="utf-8")
+    review_lib.add_question(qfile, "Second?", why="b", raised="2026-06-11")
+    qs = [c.title for c in review_lib.collect_cards(inst) if c.kind == "question"]
+    assert qs == ["First?", "Second?"]                       # inserted into the table, not after Answers
+    assert qfile.read_text(encoding="utf-8").rstrip().endswith("## Answers")
+
+
+def test_resolve_question_answer_logs_and_moves_to_done(tmp_path):
+    inst = _instance(tmp_path)
+    qfile = inst / "state" / "pending-questions.md"
+    cid = review_lib.add_question(qfile, "Reply on weekends?", why="unclear")
+    status = review_lib.resolve_question(qfile, cid, "answer",
+                                         answer="never on weekends", ts="2026-06-11T15:00:00Z")
+    assert status == "answered"
+    card = next(c for c in review_lib.collect_cards(inst) if c.kind == "question")
+    assert card.tab == "done" and card.decisions == []
+    body = qfile.read_text(encoding="utf-8")
+    assert "## Answers" in body and "Reply on weekends? → never on weekends" in body
+    # idempotent: unknown card_id is a no-op
+    assert review_lib.resolve_question(qfile, "question:nope", "answer") is None
+
+
+def test_question_with_pipe_round_trips(tmp_path):
+    inst = _instance(tmp_path)
+    qfile = inst / "state" / "pending-questions.md"
+    q = "Route to Sydney | Tony, or pick by region?"   # literal pipe in the question
+    cid = review_lib.add_question(qfile, q, why="ambiguous owner")
+    # idempotency holds despite the escaped pipe (no duplicate row)
+    review_lib.add_question(qfile, q)
+    qcards = [c for c in review_lib.collect_cards(inst) if c.kind == "question"]
+    assert len(qcards) == 1
+    assert qcards[0].title == q                          # displayed unescaped, pipe intact
+    # the row still parses to exactly 4 cells (Status not shifted by the inner pipe)
+    rows = [r for r in review_lib._markdown_rows(qfile.read_text(encoding="utf-8"))
+            if r[0].lower() != "question"]
+    assert len(rows[0]) == 4 and rows[0][3] == "open"
+    # and it resolves by card_id, flipping the right cell
+    assert review_lib.resolve_question(qfile, cid, "answer", answer="by region") == "answered"
+    assert review_lib.collect_cards(inst)[0].tab == "done"
+    assert q + " → by region" in qfile.read_text(encoding="utf-8")
+
+
+def test_resolve_question_dismiss(tmp_path):
+    inst = _instance(tmp_path)
+    qfile = inst / "state" / "pending-questions.md"
+    cid = review_lib.add_question(qfile, "Archive old threads?")
+    assert review_lib.resolve_question(qfile, cid, "dismiss") == "dismissed"
+    card = next(c for c in review_lib.collect_cards(inst) if c.kind == "question")
+    assert card.tab == "done"
+    assert "## Answers" not in qfile.read_text(encoding="utf-8")   # dismiss logs no answer
+
+
 def test_parse_decisions_includes_notes_skips_malformed(tmp_path):
     p = tmp_path / "decisions.jsonl"
     p.write_text(

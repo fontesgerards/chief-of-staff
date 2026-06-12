@@ -35,22 +35,23 @@ Scripts live beside this file: `review_lib.py` (collect cards / parse decisions 
 ### Phase A — render
 1. **Read state first** (`INSTRUCTIONS.md` §3): `state/current.md`. Resolve the instance folder
    (engine `AGENTS.md` — two roots).
-2. **Collect + render.** Run `render.py <instance_dir> <YYYY-MM-DD> --open`. It collects every pending
-   item — `queue/outbound/*.md` (`status: pending`), `state/pending-questions.md` (open rows), and
-   staged Tier-2 diffs under `queue/review/memory/*` (shown as the **raw diff**, never summarized) —
-   writes `queue/review/dashboard-<date>.html`, and **opens it in the default browser** (`--open`;
-   best-effort — on a headless/sandboxed host it just prints the path). Empty queue → a valid
-   "nothing to review" page. (Omit `--open` for non-interactive/scheduled runs.)
-3. **Choose the write-back path** by the **live host's** `config.md` runtime row (§3 — match this
-   session's host, never another's):
-   - **`script_exec` verified** → run the live server **instead** (don't double-open): `COS_SCRIPT_EXEC_VERIFIED=1
-     python serve.py <instance_dir> <date> --open` — it serves the dashboard and opens the
-     `http://127.0.0.1:<port>/` URL automatically. Clicks save automatically; the principal clicks
-     **Done** (or you stop the process) when finished. In this mode render in step 2 **without** `--open`
-     (or skip the standalone render) so only the live URL opens.
-   - **otherwise** → the `--open` from step 2 already opened the file; the principal clicks
-     **Export decisions** when done, saving `decisions-<date>.jsonl` into `queue/review/`.
-4. **Stop.** The principal triages on their own time. Do not proceed to ingest until decisions exist.
+2. **Serve it (default — decisions save themselves).** If you can run Python in this session — which you
+   just proved by being here — start the live write-back server so **every click persists with zero export
+   step**: `COS_SCRIPT_EXEC_VERIFIED=1 python serve.py <instance_dir> <YYYY-MM-DD> --open` (run it in the
+   background; it blocks while serving). It renders the dashboard from the queue — `queue/outbound/*.md`
+   (`status: pending`), open rows in `state/pending-questions.md`, and staged Tier-2 diffs under
+   `queue/review/memory/*` (shown as the **raw diff**, never summarized) — opens
+   `http://127.0.0.1:<port>/` in the browser, and appends each **send/edit/reject/answer/note** straight
+   into `queue/review/decisions-<date>.jsonl` as it's clicked. The principal clicks **Done** (or you stop
+   the process) when finished. Empty queue → a valid "nothing to review" page. The server is loopback-only,
+   writes only under `queue/review/`, and performs **no** outward action (the gate is still the only send).
+3. **Fallback — no shell / headless / scheduled run.** If Python can't run interactively here, render the
+   static file instead: `render.py <instance_dir> <YYYY-MM-DD> --open` (omit `--open` for non-interactive
+   runs — it just prints the path). With no server the page can't write back on its own, so the principal
+   clicks **Export decisions** to save `decisions-<date>.jsonl` into `queue/review/` themselves. Use this
+   path only when the server genuinely won't run; the auto-save server is the intended experience.
+4. **Stop.** The principal triages on their own time. Do not proceed to ingest until decisions exist
+   (the server returns when they click **Done**; the export flow, when the JSONL appears).
 
 ### Phase B — ingest (when `decisions-<date>.jsonl` is present)
 5. **Parse** `review_lib.py decisions queue/review/decisions-<date>.jsonl`. Skip any `card_id` already
@@ -63,8 +64,8 @@ Scripts live beside this file: `review_lib.py` (collect cards / parse decisions 
      `#voice`/`#process` correction to `state/corrections.md` (`methods/write-back.md` §2/§4).
    - **`reject`** → `set-status <proposal> rejected` + a correction.
    - **`approve`/`reject` on a `memory:` card** → `review_lib.py resolve-memory <instance_dir> <card_id> <decision>`. Approve stages the diff in `queue/review/memory/approved/` for the **next `cos-consolidate-memory` run to apply** (only the cold path may edit memory — the dashboard never does); reject archives it to `…/rejected/`. A reject is also a correction.
-   - **`answer`** → record the answer for the owning skill; mark the `pending-questions.md` row resolved.
-   - **`dismiss`** → mark the row dismissed.
+   - **`answer`** → `review_lib.py resolve-question <state/pending-questions.md> <card_id> answer --answer "<text>" --ts <iso>` — it flips the row's Status to `answered` and logs the answer under `## Answers` for the owning skill to pick up next sweep; the row leaves **To review** for **Done**.
+   - **`dismiss`** → `review_lib.py resolve-question <state/pending-questions.md> <card_id> dismiss` — marks the row `dismissed` (no answer logged).
    - **`note`** (free-text feedback, `scope: card|topic|all`) → for each proposal in the note's scope
      (the one card, every proposal in `topic:<name>`, or all in `all:<tab>`), record it durably with
      `review_lib.py note <proposal> "<text>" --ts <iso>` — which appends to the proposal's `## Notes`

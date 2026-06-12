@@ -258,14 +258,14 @@ def _collect_questions(inst: Path):
             continue
         done = status.lower() in ("resolved", "dismissed", "answered")
         cards.append(Card(
-            card_id=f"question:{_slug(question)[:48]}",
+            card_id=f"question:{_slug(question)[:48]}",   # slug ignores the `\|` escape — stable
             kind="question",
             tab="done" if done else "review",
             topic="Questions",
-            title=question,
+            title=_unescape_cell(question),
             source_label="QUESTION",
             date=raised,
-            fields={"context": why, "what_happened": "", "why": [],
+            fields={"context": _unescape_cell(why), "what_happened": "", "why": [],
                     "draft": "", "full_source": "", "editable": True},
             decisions=[] if done else ["answer", "dismiss"],
         ))
@@ -297,13 +297,26 @@ def _collect_memory(inst: Path):
     return cards
 
 
+_CELL_SPLIT = re.compile(r"(?<!\\)\|")   # split on pipes, not the escaped `\|` inside a cell
+
+
+def _split_cells(row_line: str):
+    """Cells of one `| a | b |` row, split on **unescaped** pipes so a value that
+    carries an escaped `\\|` (written by `_q_cell`) stays in one cell. Trimmed."""
+    return [c.strip() for c in _CELL_SPLIT.split(row_line.strip().strip("|"))]
+
+
+def _unescape_cell(s):
+    return (s or "").replace("\\|", "|")
+
+
 def _markdown_rows(text: str):
     rows = []
     for line in text.splitlines():
         s = line.strip()
         if not s.startswith("|"):
             continue
-        cells = [c.strip() for c in s.strip("|").split("|")]
+        cells = _split_cells(s)
         if all(set(c) <= {"-", ":", " "} for c in cells):  # |---|---| separator
             continue
         rows.append(cells)
@@ -369,6 +382,96 @@ def resolve_memory(instance_dir, card_id, decision):
     return dest
 
 
+_Q_HEADER = "| Question | Why it matters | Raised | Status |"
+_Q_SEP = "|---|---|---|---|"
+_Q_DOC_HEAD = (
+    "# Pending questions\n\n"
+    "> Things the system is genuinely uncertain about and wants to confirm by "
+    "exception. Surfaced in the review surface, not asked mid-run unless blocking.\n\n"
+)
+
+
+def _q_cell(s):
+    return (s or "").replace("|", "\\|").replace("\n", " ").strip()
+
+
+def add_question(qfile, question, why="", raised="", ts=""):
+    """Append one open question to `state/pending-questions.md` so it surfaces as an
+    answerable card in the dashboard's **To review** tab. Creates the file + table if
+    absent; idempotent on the question text (same slug -> not re-added). This is the
+    producer side — any sweep skill that hits a genuine uncertainty emits it here
+    instead of guessing or interrupting the run. Returns the question's card_id."""
+    question = (question or "").strip()
+    if not question:
+        raise ValueError("question text required")
+    p = Path(qfile)
+    cid = f"question:{_slug(question)[:48]}"
+    raised = raised or (ts[:10] if ts else "")
+    row = f"| {_q_cell(question)} | {_q_cell(why)} | {_q_cell(raised)} | open |"
+    if not p.is_file():
+        p.write_text(_Q_DOC_HEAD + _Q_HEADER + "\n" + _Q_SEP + "\n" + row + "\n",
+                     encoding="utf-8")
+        return cid
+    lines = p.read_text(encoding="utf-8-sig").splitlines()
+    for r in _markdown_rows("\n".join(lines)):     # idempotent on the question slug
+        if r and r[0].lower() != "question" and _slug(r[0])[:48] == _slug(question)[:48]:
+            return cid
+    sep_i = next((i for i, ln in enumerate(lines)
+                  if ln.strip().startswith("|") and "-" in ln
+                  and set(ln.strip()) <= {"|", "-", ":", " "}), None)
+    if sep_i is None:                               # no table yet — start one
+        lines += ["", _Q_HEADER, _Q_SEP, row]
+    else:                                           # insert after the last table row
+        j = sep_i + 1
+        while j < len(lines) and lines[j].strip().startswith("|"):
+            j += 1
+        lines.insert(j, row)
+    p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return cid
+
+
+def resolve_question(qfile, card_id, decision, answer="", ts=""):
+    """Mark a pending question answered/dismissed from a dashboard decision, in place.
+    `answer` -> Status becomes `answered` and the answer is logged under `## Answers`
+    so the owning skill can pick it up next sweep; `dismiss` -> Status `dismissed`.
+    Either way the row leaves **To review** for **Done** (collect treats both as done).
+    Matches the row by card_id slug; returns the new status, or None if no row matches
+    (idempotent re-runs are safe)."""
+    if decision not in ("answer", "dismiss"):
+        raise ValueError(f"question decision must be answer|dismiss, got {decision!r}")
+    p = Path(qfile)
+    if not p.is_file():
+        return None
+    target = card_id.split(":", 1)[1] if ":" in card_id else card_id
+    lines = p.read_text(encoding="utf-8-sig").splitlines()
+    status = "answered" if decision == "answer" else "dismissed"
+    matched_q = None
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        if not s.startswith("|"):
+            continue
+        cells = _split_cells(s)
+        if len(cells) < 4 or all(set(c) <= {"-", ":", " "} for c in cells):
+            continue
+        if cells[0].lower() == "question":
+            continue
+        if _slug(cells[0])[:48] == target:
+            cells[3] = status
+            lines[i] = "| " + " | ".join(cells) + " |"
+            matched_q = _unescape_cell(cells[0])
+            break
+    if matched_q is None:
+        return None
+    text = "\n".join(lines)
+    if decision == "answer" and answer.strip():
+        entry = f"- {ts + ' — ' if ts else ''}{matched_q} → {answer.strip()}"
+        m = re.search(r"(?m)^##+\s*Answers\s*$", text)
+        text = (text[:m.end()] + "\n" + entry + text[m.end():] if m
+                else text.rstrip() + "\n\n## Answers\n" + entry + "\n")
+    p.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
+    return status
+
+
 def add_note(proposal_path, text, ts=""):
     """Append one feedback note to a proposal's `## Notes` section (newest first,
     creating the section if absent) and flip its status to `feedback` so it leaves
@@ -414,6 +517,10 @@ if __name__ == "__main__":
     nt.add_argument("--ts", default="")
     rm = sub.add_parser("resolve-memory"); rm.add_argument("instance_dir")
     rm.add_argument("card_id"); rm.add_argument("decision")
+    aq = sub.add_parser("add-question"); aq.add_argument("qfile"); aq.add_argument("question")
+    aq.add_argument("--why", default=""); aq.add_argument("--raised", default=""); aq.add_argument("--ts", default="")
+    rq = sub.add_parser("resolve-question"); rq.add_argument("qfile"); rq.add_argument("card_id")
+    rq.add_argument("decision"); rq.add_argument("--answer", default=""); rq.add_argument("--ts", default="")
     args = ap.parse_args()
 
     if args.cmd == "collect":
@@ -428,3 +535,7 @@ if __name__ == "__main__":
         print(add_note(args.proposal_path, args.text, args.ts))
     elif args.cmd == "resolve-memory":
         print(resolve_memory(args.instance_dir, args.card_id, args.decision))
+    elif args.cmd == "add-question":
+        print(add_question(args.qfile, args.question, args.why, args.raised, args.ts))
+    elif args.cmd == "resolve-question":
+        print(resolve_question(args.qfile, args.card_id, args.decision, args.answer, args.ts))
