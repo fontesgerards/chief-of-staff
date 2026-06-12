@@ -114,6 +114,7 @@ calendar_audit:
 ```yaml
 loop_closing:
   stalled_after_days: 7      # a loop with no movement (open-loops.md Last update) older than this is flagged stalled
+  relationship_stale_after_days: 28   # a key: true person with no real contact (meeting / sent / last_contacted) in this window is flagged "going quiet"
 ```
 
 ## Queue lifecycle

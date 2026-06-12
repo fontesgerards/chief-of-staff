@@ -15,5 +15,8 @@ origin: derived           # observed | confirmed | inferred | imported | derived
 ## Overdue (past due)
 - **{{commitment}}** — owed by {{who}}, due {{date}} → next: {{step}}
 
+## Going quiet (key relationships, no contact > {{relationship_stale_after_days}}d)
+- **[[{{person}}]]** — last real contact {{date}} ({{meeting | sent reply}}) → suggested touch: {{step}}
+
 ## Queued nudges
 - {{count}} outward nudge(s) drafted to `queue/outbound/` for your approval (in your voice). (Exact text lives there, not here.)
