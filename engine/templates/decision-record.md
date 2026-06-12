@@ -65,7 +65,26 @@ the feedback inline on the card immediately. The loop: feedback captured → ite
   up next sweep. The question card moves to **Done**.
 - **`dismiss`** → `review_lib.py resolve-question … dismiss`: marks the row `dismissed` (no answer logged).
 
-> **Where questions come from.** Sweep skills (`cos-meeting-follow-up`, `cos-loop-closing`, …) emit a
-> genuine uncertainty *by exception* via `review_lib.py add-question`, which appends an open row to
-> `state/pending-questions.md`. The dashboard renders each open row as an answerable card in **To review**,
-> so the principal resolves it in the same pass as their sends — no separate channel.
+> **Where questions come from.** Sweep skills (`cos-meeting-follow-up`, `cos-loop-closing`,
+> `cos-inbox-sweep`, `cos-calendar-audit`, …) emit a genuine uncertainty *by exception* via
+> `review_lib.py add-question`, which appends an open row to `state/pending-questions.md`. The dashboard
+> renders each open row as an answerable card in **To review**, so the principal resolves it in the same
+> pass as their sends — no separate channel.
+
+### Question hygiene — every emitter owns its rows
+
+With several skills emitting questions, three conventions keep the table sane (no schema change):
+
+1. **Deterministic, key-first question text.** `add-question`'s identity (and dedup) is the first
+   **48 slugified characters** of the question text. Emitters whose findings recur across overlapping
+   windows (e.g. the calendar audit's daily 4-day scan) lead with a literal key —
+   `[audit <YYYY-MM-DD> <check-code> <event-slug>] <question>` — so the unique part lands inside that
+   window: idempotent across runs and phrasing drift, while two different findings on the same item
+   stay distinct. Never lead with a long free-text title.
+2. **The `card_id` is derivable.** `question:<slug(question)[:48]>` — or read it back from
+   `review_lib.py collect`. That id is what `resolve-question` matches on.
+3. **Emitters dismiss their own expired rows.** A finding tied to a date (a Tuesday conflict) is noise
+   once the date passes: each run opens by dismissing its own out-of-date open rows
+   (`resolve-question … dismiss`) before emitting new ones. An emitter that consumes answers
+   (calendar-audit) also dismisses the answered row after acting on it — answered → dismissed is the
+   "consumed" state.
