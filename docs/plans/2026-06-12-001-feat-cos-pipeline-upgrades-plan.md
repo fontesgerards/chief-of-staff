@@ -1,7 +1,7 @@
 ---
 title: "feat: CoS pipeline upgrades — daily brief, inbox sweep, calendar audit, relationship staleness"
 type: feat
-status: active
+status: completed
 date: 2026-06-12
 ---
 
