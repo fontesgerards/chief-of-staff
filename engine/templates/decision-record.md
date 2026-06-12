@@ -1,10 +1,11 @@
 # Decision record — `queue/review/decisions-<date>.jsonl`
 
 > The **append-only** round-trip format between the rendered decision dashboard and
-> the `/cos-review` ingest phase. One JSON object per line. Written either by the
-> dashboard's **Export decisions** button (works everywhere) or, on hosts with
-> verified `script_exec`, by the optional localhost write-back server — both emit
-> the identical shape, so ingest is agnostic to how a line got here.
+> the `/cos-review` ingest phase. One JSON object per line. **By default** each line is
+> written automatically by the localhost write-back server as the principal clicks —
+> no manual step. On a host that can't run the server (headless / no shell), the
+> dashboard's **Export decisions** button produces the identical file as a fallback.
+> Both emit the same shape, so ingest is agnostic to how a line got here.
 >
 > Append-only matches the inward-write ethos (`INSTRUCTIONS.md` §2): nothing is
 > destroyed, so a bad or duplicate decision can't silently corrupt the queue.
@@ -59,5 +60,12 @@ the feedback inline on the card immediately. The loop: feedback captured → ite
   (`review_lib.py regen-digest`) so the gate still matches, and append a `#voice`/`#process`
   correction (`state/corrections.md`).
 - **`reject`** → `status: rejected` + a correction.
-- **`answer`** → record the answer for the owning skill; mark the question resolved.
-- **`dismiss`** → mark the question dismissed.
+- **`answer`** → `review_lib.py resolve-question <state/pending-questions.md> <card_id> answer --answer "<text>"`:
+  flips the row's Status to `answered` and logs the answer under `## Answers` for the owning skill to pick
+  up next sweep. The question card moves to **Done**.
+- **`dismiss`** → `review_lib.py resolve-question … dismiss`: marks the row `dismissed` (no answer logged).
+
+> **Where questions come from.** Sweep skills (`cos-meeting-follow-up`, `cos-loop-closing`, …) emit a
+> genuine uncertainty *by exception* via `review_lib.py add-question`, which appends an open row to
+> `state/pending-questions.md`. The dashboard renders each open row as an answerable card in **To review**,
+> so the principal resolves it in the same pass as their sends — no separate channel.

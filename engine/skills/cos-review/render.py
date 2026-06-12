@@ -7,10 +7,11 @@ What happened + editable draft + Why this is in the sweep, and a persistent
 bottom feedback bar ("Talking to: <scope>", Broader/Narrower, input, Send).
 
 Zero external/network dependencies — CSS + JS inlined, card data embedded as a
-JSON island painted by client JS (all escaping via textContent/value). Decisions
-and notes accumulate in page; Export downloads decisions-<date>.jsonl; a live
-write-back server (if present) also receives each one. The dashboard NEVER sends:
-a send/approve is just a row in the JSONL the ingest phase reads.
+JSON island painted by client JS (all escaping via textContent/value). When served
+by serve.py (the default path) each decision POSTs straight into
+decisions-<date>.jsonl as it's clicked — no manual step; the standalone file falls
+back to an Export button that downloads the identical JSONL. The dashboard NEVER
+sends: a send/approve is just a row in the JSONL the ingest phase reads.
 """
 from __future__ import annotations
 

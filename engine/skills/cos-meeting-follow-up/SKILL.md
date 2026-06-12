@@ -20,6 +20,8 @@ mutates: true             # hot-path: APPENDS to episodic/ + state/ (never destr
 7. **Note decisions** → `memory/episodic/decisions/` if any were made.
 8. **Outward items → queue.** Any follow-up email/message is a **proposal** in `queue/outbound/` — exact text, **in the principal's voice** (load `core/voice.md` + `procedural/drafting.md`) — surfaced in the review surface. Never sent. **Fill the dashboard display fields** (`engine/templates/proposal.md`) so it renders as a rich card: `topic:` = the account/project the meeting concerns (else the meeting title); `source:` = `meeting`; `context:` = one line on what this follow-up is; `## What happened` = the meeting outcome that triggered it (decision, ask, commitment); `## Why this is in the sweep` = why it surfaced now (e.g. "you committed to send the deck", "they're waiting on pricing").
 
+9. **Genuine uncertainty → open question.** When a meeting left something only the principal can resolve — an ambiguous owner, a commitment you can't draft without a missing detail, a "did they mean X or Y" — don't fabricate and don't interrupt mid-run. Emit it as an **open question** so it lands as an answerable card in the review dashboard's **To review** tab: `python engine/skills/cos-review/review_lib.py add-question <instance_dir>/state/pending-questions.md "<the question>" --why "<why it matters>" --ts <iso>`. By exception only — most meetings raise none.
+
 ## Output
 Per processed meeting: an episodic note + updated commitments/loops + any outward proposals in the queue. Routing is the point: inward facts auto-append, outward comms go to the queue. On a day with nothing to process, no output.
 
