@@ -258,14 +258,14 @@ def _collect_questions(inst: Path):
             continue
         done = status.lower() in ("resolved", "dismissed", "answered")
         cards.append(Card(
-            card_id=f"question:{_slug(question)[:48]}",
+            card_id=f"question:{_slug(question)[:48]}",   # slug ignores the `\|` escape — stable
             kind="question",
             tab="done" if done else "review",
             topic="Questions",
-            title=question,
+            title=_unescape_cell(question),
             source_label="QUESTION",
             date=raised,
-            fields={"context": why, "what_happened": "", "why": [],
+            fields={"context": _unescape_cell(why), "what_happened": "", "why": [],
                     "draft": "", "full_source": "", "editable": True},
             decisions=[] if done else ["answer", "dismiss"],
         ))
@@ -297,13 +297,26 @@ def _collect_memory(inst: Path):
     return cards
 
 
+_CELL_SPLIT = re.compile(r"(?<!\\)\|")   # split on pipes, not the escaped `\|` inside a cell
+
+
+def _split_cells(row_line: str):
+    """Cells of one `| a | b |` row, split on **unescaped** pipes so a value that
+    carries an escaped `\\|` (written by `_q_cell`) stays in one cell. Trimmed."""
+    return [c.strip() for c in _CELL_SPLIT.split(row_line.strip().strip("|"))]
+
+
+def _unescape_cell(s):
+    return (s or "").replace("\\|", "|")
+
+
 def _markdown_rows(text: str):
     rows = []
     for line in text.splitlines():
         s = line.strip()
         if not s.startswith("|"):
             continue
-        cells = [c.strip() for c in s.strip("|").split("|")]
+        cells = _split_cells(s)
         if all(set(c) <= {"-", ":", " "} for c in cells):  # |---|---| separator
             continue
         rows.append(cells)
@@ -437,7 +450,7 @@ def resolve_question(qfile, card_id, decision, answer="", ts=""):
         s = ln.strip()
         if not s.startswith("|"):
             continue
-        cells = [c.strip() for c in s.strip("|").split("|")]
+        cells = _split_cells(s)
         if len(cells) < 4 or all(set(c) <= {"-", ":", " "} for c in cells):
             continue
         if cells[0].lower() == "question":
@@ -445,7 +458,7 @@ def resolve_question(qfile, card_id, decision, answer="", ts=""):
         if _slug(cells[0])[:48] == target:
             cells[3] = status
             lines[i] = "| " + " | ".join(cells) + " |"
-            matched_q = cells[0]
+            matched_q = _unescape_cell(cells[0])
             break
     if matched_q is None:
         return None

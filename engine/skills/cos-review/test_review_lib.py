@@ -160,6 +160,26 @@ def test_resolve_question_answer_logs_and_moves_to_done(tmp_path):
     assert review_lib.resolve_question(qfile, "question:nope", "answer") is None
 
 
+def test_question_with_pipe_round_trips(tmp_path):
+    inst = _instance(tmp_path)
+    qfile = inst / "state" / "pending-questions.md"
+    q = "Route to Sydney | Tony, or pick by region?"   # literal pipe in the question
+    cid = review_lib.add_question(qfile, q, why="ambiguous owner")
+    # idempotency holds despite the escaped pipe (no duplicate row)
+    review_lib.add_question(qfile, q)
+    qcards = [c for c in review_lib.collect_cards(inst) if c.kind == "question"]
+    assert len(qcards) == 1
+    assert qcards[0].title == q                          # displayed unescaped, pipe intact
+    # the row still parses to exactly 4 cells (Status not shifted by the inner pipe)
+    rows = [r for r in review_lib._markdown_rows(qfile.read_text(encoding="utf-8"))
+            if r[0].lower() != "question"]
+    assert len(rows[0]) == 4 and rows[0][3] == "open"
+    # and it resolves by card_id, flipping the right cell
+    assert review_lib.resolve_question(qfile, cid, "answer", answer="by region") == "answered"
+    assert review_lib.collect_cards(inst)[0].tab == "done"
+    assert q + " → by region" in qfile.read_text(encoding="utf-8")
+
+
 def test_resolve_question_dismiss(tmp_path):
     inst = _instance(tmp_path)
     qfile = inst / "state" / "pending-questions.md"
