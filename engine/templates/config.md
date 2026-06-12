@@ -44,7 +44,9 @@ autonomy:
 ```yaml
 # Set at onboarding (cos-preflight confirms). Every day-of-week and time-window rule
 # (the daily brief's Fri/Sat skip, "next 24h", the calendar audit's lookahead,
-# "approaching deadline") evaluates against THIS timezone — never UTC, never the host's.
+# "approaching deadline") evaluates against THIS timezone once set — not UTC, not the host's.
+# While unset (pre-onboarding), fall back to the HOST's local clock and note the
+# assumption in the run capture — never silently use UTC.
 timezone: {{IANA}}             # e.g. America/New_York
 ```
 
@@ -120,7 +122,9 @@ loop_closing:
 ## Queue lifecycle
 ```yaml
 queue:
-  retain_resolved_days: 14   # approved/rejected proposals move to log/ or are deleted after this window
+  retain_resolved_days: 14   # resolved proposals (approved/rejected/SENT) retire by MOVING to log/ after this
+                             # window — never delete: sent proposals are going-quiet contact evidence that must
+                             # outlive this window (loop_closing.relationship_stale_after_days reads them for 28d)
 ```
 
 ## Person enrichment

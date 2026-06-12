@@ -78,9 +78,12 @@ With several skills emitting questions, three conventions keep the table sane (n
 1. **Deterministic, key-first question text.** `add-question`'s identity (and dedup) is the first
    **48 slugified characters** of the question text. Emitters whose findings recur across overlapping
    windows (e.g. the calendar audit's daily 4-day scan) lead with a literal key —
-   `[audit <YYYY-MM-DD> <check-code> <event-slug>] <question>` — so the unique part lands inside that
+   `[audit <YYYY-MM-DD> <check-code> <slug>] <question>` — so the unique part lands inside that
    window: idempotent across runs and phrasing drift, while two different findings on the same item
-   stay distinct. Never lead with a long free-text title.
+   stay distinct. Never lead with a long free-text title. Key parts must themselves be deterministic:
+   date = the **finding's** date (never the run date); event slugs lead with the start time (`HHMM-…`)
+   so truncated titles can't collide; day-level findings use a fixed literal (the emitting skill
+   defines the exact parts — see `cos-calendar-audit` step 6).
 2. **The `card_id` is derivable.** `question:<slug(question)[:48]>` — or read it back from
    `review_lib.py collect`. That id is what `resolve-question` matches on.
 3. **Emitters dismiss their own expired rows.** A finding tied to a date (a Tuesday conflict) is noise

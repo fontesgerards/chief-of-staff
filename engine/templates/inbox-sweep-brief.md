@@ -14,7 +14,9 @@ origin: derived           # observed | confirmed | inferred | imported | derived
 
 ## Drafted for your review
 > One line per queued reply proposal — recipient, thread subject, the ask it answers. The drafts
-> themselves live in `queue/outbound/`; triage via `/cos-review`.
+> themselves live in `queue/outbound/`; triage via `/cos-review`. **Voice-floor mode** (drafting
+> disabled): retitle this section **Needs your reply (drafting disabled)** and list the needs-reply
+> threads the same way — sender, subject, the ask — so manual replies are still possible.
 
 - {{recipient — subject — the ask, restated}} → `queue/outbound/{{file}}`
 

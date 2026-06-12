@@ -1,7 +1,7 @@
 ---
 type: daily-brief
-date: YYYY-MM-DD          # the run date; filename: state/briefs/daily-brief-YYYY-MM-DD.md (named for `covers`)
-covers: YYYY-MM-DD        # the day this brief is FOR (the next 24h window; skipped when Fri/Sat principal-local)
+date: YYYY-MM-DD          # the run date (the evening before)
+covers: YYYY-MM-DD        # the day this brief is FOR — the FILENAME uses THIS date: state/briefs/daily-brief-<covers>.md (skipped when Fri/Sat principal-local)
 origin: derived           # observed | confirmed | inferred | imported | derived — assembled from memory + state; not a standing fact
 ---
 
