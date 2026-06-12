@@ -110,6 +110,7 @@ calendar_audit:
   lookahead_days: 4          # how far ahead cos-calendar-audit scans
   back_to_back_hours: 3      # a continuous run of meetings at/over this span is flagged
   min_break_minutes: 30      # the smallest gap that counts as a break (run + no-break checks)
+  large_event_attendee_threshold: 10   # events with this many attendees or more are skipped by the missing-critical-participant check (all-hands noise)
 ```
 
 ## Loop-closing
