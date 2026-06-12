@@ -74,6 +74,8 @@ schedules:
   extract-from-sources: {cadence: daily, at: "17:30", status: intent-only, registered_via: "", profile: restricted}   # isolated pass — stages the day's sources BEFORE the consumers below; MUST register with the restricted extractor profile (engine/docs/write-isolation-config.md), never the normal one
   meeting-prep:        {cadence: daily,   at: "17:00", status: intent-only, registered_via: ""}
   meeting-follow-up:   {cadence: daily,   at: "18:00", status: intent-only, registered_via: ""}   # end of day; inverse of prep
+  inbox-sweep:         {cadence: daily,   at: "18:15", status: intent-only, registered_via: ""}   # after follow-up (which wins dedup) and the 17:30 extract pass it consumes
+  calendar-audit:      {cadence: daily,   at: "08:30", status: intent-only, registered_via: ""}   # morning-of; scans the next calendar_audit.lookahead_days
   entity-enrichment:   {cadence: daily,   at: "18:30", status: intent-only, registered_via: ""}   # after the 17:30 extract pass it consumes
   loop-closing:        {cadence: weekly,  day: mon,    status: intent-only, registered_via: ""}
   research:            {cadence: weekly,  day: mon,    status: intent-only, registered_via: ""}
@@ -92,6 +94,7 @@ schedules:
 delivery:
   default:            {channel: file, path: "state/briefs/"}
   meeting-prep:       {channel: file, path: "state/briefs/"}
+  inbox-sweep:        {channel: file, path: "state/briefs/"}
   loop-closing:       {channel: file, path: "state/briefs/"}
   research:           {channel: file, path: "state/briefs/"}
   coaching:           {channel: file, path: "state/briefs/"}

@@ -104,6 +104,11 @@ ARTIFACT_TYPES = {
         "path_pattern": "state/briefs/daily-brief-YYYY-MM-DD.md",
         "required_keys": ["type", "date", "covers", "origin"],
     },
+    "inbox-sweep-brief": {
+        "template": "engine/templates/inbox-sweep-brief.md",
+        "path_pattern": "state/briefs/inbox-sweep-YYYY-MM-DD.md",
+        "required_keys": ["type", "date", "covers", "origin"],
+    },
     "loop-closing-brief": {
         "template": "engine/templates/loop-closing-brief.md",
         "path_pattern": "state/briefs/loop-closing-YYYY-MM-DD.md",
